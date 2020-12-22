@@ -1,0 +1,38 @@
+{
+  "$schema": "https://hypar.io/Schemas/Function.json",
+  "id": "6bcf9d36-19d4-4713-8745-5d8a42ef8d61",
+  "name": "MJ_ProceduralApartmentPlacer",
+  "description": "Places an apartment mix in a procedurally generated mass.",
+  "language": "C#",
+  "model_dependencies": [
+    {
+      "autohide": false,
+      "name": "Floor",
+      "optional": false
+    }
+  ],
+  "input_schema": {"type":"object","properties":{"Seam":{"multipleOf":0.01,"default":0.54,"maximum":1,"description":"Parameter that can be adjusted for apartment stack placement.","type":"number","$hyparOrder":2,"minimum":0},"CorePolygons":{"description":"Core polygons around which apartments should be placed.","default":[],"type":"array","$hyparOrder":0,"items":{"name":"CorePolygons","description":"A list of cores the apartments should be placed around.","default":null,"type":"object","$ref":"https://hypar.io/Schemas/Geometry/Polygon.json"}},"CorridorWidth":{"multipleOf":0.5,"default":5.5,"maximum":8,"description":"Width of corridor ","type":"number","$hyparOrder":1,"minimum":3}}},
+  "outputs": [
+    {
+      "unit_type": "none",
+      "name": "Units Placed",
+      "description": "Apartment Placed",
+      "type": "number"
+    },
+    {
+      "unit_type": "none",
+      "name": "Units Remaining",
+      "description": "Apartments Remaining",
+      "type": "number"
+    }
+  ],
+  "element_types": [
+    "https://prod-api.hypar.io/schemas/Floor",
+    "https://prod-api.hypar.io/schemas/Envelope",
+    "https://raw.githubusercontent.com/hypar-io/Schemas/master/Room.json",
+    "https://prod-api.hypar.io/schemas/ProgramType"
+  ],
+  "repository_url": "",
+  "source_file_key": null,
+  "preview_image": null
+}
