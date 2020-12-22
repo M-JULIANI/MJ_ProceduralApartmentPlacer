@@ -29,18 +29,19 @@ namespace MJProceduralApartmentPlacer
     {
         [Newtonsoft.Json.JsonConstructor]
         
-        public MJProceduralApartmentPlacerInputs(double @seam, IList<Polygon> @corePolygons, double @corridorWidth, string bucketName, string uploadsBucket, Dictionary<string, string> modelInputKeys, string gltfKey, string elementsKey, string ifcKey):
+        public MJProceduralApartmentPlacerInputs(double @seam, IList<Polygon> @corePolygons, double @corridorWidth, UnitMix @unitMix, string bucketName, string uploadsBucket, Dictionary<string, string> modelInputKeys, string gltfKey, string elementsKey, string ifcKey):
         base(bucketName, uploadsBucket, modelInputKeys, gltfKey, elementsKey, ifcKey)
         {
             var validator = Validator.Instance.GetFirstValidatorForType<MJProceduralApartmentPlacerInputs>();
             if(validator != null)
             {
-                validator.PreConstruct(new object[]{ @seam, @corePolygons, @corridorWidth});
+                validator.PreConstruct(new object[]{ @seam, @corePolygons, @corridorWidth, @unitMix});
             }
         
             this.Seam = @seam;
             this.CorePolygons = @corePolygons;
             this.CorridorWidth = @corridorWidth;
+            this.UnitMix = @unitMix;
         
             if(validator != null)
             {
@@ -61,6 +62,95 @@ namespace MJProceduralApartmentPlacer
         [Newtonsoft.Json.JsonProperty("CorridorWidth", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Range(3D, 8D)]
         public double CorridorWidth { get; set; } = 5.5D;
+    
+        [Newtonsoft.Json.JsonProperty("Unit Mix", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public UnitMix UnitMix { get; set; }
+    
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties = new System.Collections.Generic.Dictionary<string, object>();
+    
+        [Newtonsoft.Json.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties; }
+            set { _additionalProperties = value; }
+        }
+    
+    
+    }
+    
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.1.21.0 (Newtonsoft.Json v12.0.0.0)")]
+    
+    public partial class UnitMix 
+    
+    {
+        [Newtonsoft.Json.JsonConstructor]
+        public UnitMix(IList<Nodes> @nodes)
+        {
+            var validator = Validator.Instance.GetFirstValidatorForType<UnitMix>();
+            if(validator != null)
+            {
+                validator.PreConstruct(new object[]{ @nodes});
+            }
+        
+            this.Nodes = @nodes;
+        
+            if(validator != null)
+            {
+                validator.PostConstruct(this);
+            }
+        }
+    
+        [Newtonsoft.Json.JsonProperty("Nodes", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public IList<Nodes> Nodes { get; set; }
+    
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties = new System.Collections.Generic.Dictionary<string, object>();
+    
+        [Newtonsoft.Json.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties; }
+            set { _additionalProperties = value; }
+        }
+    
+    
+    }
+    
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.1.21.0 (Newtonsoft.Json v12.0.0.0)")]
+    
+    public partial class Nodes 
+    
+    {
+        [Newtonsoft.Json.JsonConstructor]
+        public Nodes(string @spaceType, Color @color, double @unitArea, double @unitCount)
+        {
+            var validator = Validator.Instance.GetFirstValidatorForType<Nodes>();
+            if(validator != null)
+            {
+                validator.PreConstruct(new object[]{ @spaceType, @color, @unitArea, @unitCount});
+            }
+        
+            this.SpaceType = @spaceType;
+            this.Color = @color;
+            this.UnitArea = @unitArea;
+            this.UnitCount = @unitCount;
+        
+            if(validator != null)
+            {
+                validator.PostConstruct(this);
+            }
+        }
+    
+        [Newtonsoft.Json.JsonProperty("Space Type", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string SpaceType { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("Color", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public Color Color { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("Unit Area", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double UnitArea { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("Unit Count", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double UnitCount { get; set; }
     
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties = new System.Collections.Generic.Dictionary<string, object>();
     

@@ -11,7 +11,74 @@
       "optional": false
     }
   ],
-  "input_schema": {"type":"object","properties":{"Seam":{"multipleOf":0.01,"default":0.54,"maximum":1,"description":"Parameter that can be adjusted for apartment stack placement.","type":"number","$hyparOrder":2,"minimum":0},"CorePolygons":{"description":"Core polygons around which apartments should be placed.","default":[],"type":"array","$hyparOrder":0,"items":{"name":"CorePolygons","description":"A list of cores the apartments should be placed around.","default":null,"type":"object","$ref":"https://hypar.io/Schemas/Geometry/Polygon.json"}},"CorridorWidth":{"multipleOf":0.5,"default":5.5,"maximum":8,"description":"Width of corridor ","type":"number","$hyparOrder":1,"minimum":3}}},
+  "input_schema": {"type":"object","properties":{"Seam":{"multipleOf":0.01,"default":0.54,"maximum":1,"description":"Parameter that can be adjusted for apartment stack placement.","type":"number","$hyparOrder":2,"minimum":0},"CorePolygons":{"description":"Core polygons around which apartments should be placed.","default":[],"type":"array","$hyparOrder":0,"items":{"name":"CorePolygons","description":"A list of cores the apartments should be placed around.","default":null,"type":"object","$ref":"https://hypar.io/Schemas/Geometry/Polygon.json"}},"CorridorWidth":{"multipleOf":0.5,"default":5.5,"maximum":8,"description":"Width of corridor ","type":"number","$hyparOrder":1,"minimum":3}, 
+   "Unit Mix": {
+    "type": "object",
+    "$hyparStyle": "matrix",
+    "$hyparCanPopOut": true,
+    "properties": {
+       "Nodes": {
+          "type": "array",
+          "items": {
+             "type": "object",
+             "$hyparStyle": "row",
+             "properties": {
+                "Space Type": {
+                   "type": [
+                      "string",
+                      "null"
+                   ]
+                },
+                "Color": {
+                   "description": "",
+                   "$ref": "https://hypar.io/Schemas/Geometry/Color.json"
+                },
+                "Unit Area": {
+                   "type": "number",
+                   "$hyparUnitType": "area"
+                },
+                "Unit Count": {
+                  "type": "number",
+                  "$hyparUnitType": "none"
+               }
+             }
+          },
+          "default": [
+             {
+                "Space Type": "Unit A",
+                "Color": {
+                   "Red": 0.0,
+                   "Green": 0.415,
+                   "Blue": 1.0,
+                   "Alpha": 1
+                },
+                "Target Area": 100
+             },
+             {
+                "Space Type": "Unit B",
+                "Color": {
+                   "Red": 0.0,
+                   "Green": 1.0,
+                   "Blue": 0.517,
+                   "Alpha": 1
+                },
+                "Target Area": 100
+             },
+             {
+                "Space Type": "Unit C",
+                "Color": {
+                   "Red": 0.733,
+                   "Green": 1.0,
+                   "Blue": 0.2,
+                   "Alpha": 1
+                },
+                "Target Area": 300
+             }
+          ]
+       }
+    }
+ }
+}},
   "outputs": [
     {
       "unit_type": "none",
