@@ -1,5 +1,7 @@
 using Elements;
 using Elements.Geometry;
+using Elements.Geometry.Solids;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -12,8 +14,8 @@ using System.Linq;
     public List<SmWall> _Walls;
 
 
-    private List<double> _areas;
-    private List<string> _spaces;
+     private List<double> _areas;
+     private List<string> _spaces;
 
     private int _GlobalIndex;
 
@@ -32,7 +34,7 @@ using System.Linq;
 
 //previously datatree<polygon>
     public Dictionary<int, List<SmSpace>> _PlacedProgram;
-    public Dictionary<int, List<SmSpace>> _ProcessedProgram;
+    public Dictionary<int, SmSpace> _ProcessedProgram;
 
     double _SplitInterval;
     double _leaseOffset;
@@ -81,8 +83,8 @@ using System.Linq;
       // if(orientation != CurveOrientation.Clockwise)
       //   boundary.Reverse();
 
-      _areas = areas;
-      _spaces = spaces;
+       _areas = spaces.OrderBy(s=>s.roomNumber).Select(s=>s.area).ToList();
+       _spaces = spaces.OrderBy(s=>s.roomNumber).Select(s=>s.roomNumber.ToString()).ToList();
 
       Polyline tempPoly= boundary.ToPolyline();
 
@@ -112,8 +114,8 @@ using System.Linq;
       crvs.Add(new Polygon(_Core.Vertices));
       _MainFace = Polygon.UnionAll(crvs)[0];
 
-      InitSpaces();
-      InitWalls(out inCoreM);
+      //InitSpaces();
+      InitWalls();
 
 
 
@@ -136,35 +138,33 @@ using System.Linq;
 
     public Polyline InitCoreCrv()
     {
-      Polyline poly = new Polyline();
-      Plane workPlane = new Plane(_boundaryPoly.PointAt(0.0), Vector3d.ZAxis);
-      Curve insetOffset = _BoundaryCurve.Offset(workPlane, _leaseOffset, 0.1, CurveOffsetCornerStyle.Sharp)[0];
 
-      Polyline polyOut;
-      insetOffset.TryGetPolyline(out polyOut);
+      Plane workPlane = new Plane(_boundaryPoly.PointAt(0.0), Vector3.ZAxis);
+      Curve insetOffset = _BoundaryCurve.Offset(_leaseOffset, EndType.ClosedPolygon)[0];
 
-      if(polyOut.ToNurbsCurve().ClosedCurveOrientation(Vector3d.ZAxis) != _BoundaryCurve.ClosedCurveOrientation(Vector3d.ZAxis))
-        polyOut.Reverse();
+      Polyline polyOut= insetOffset.ToPolyline();
+
+      // if(polyOut.ToNurbsCurve().ClosedCurveOrientation(Vector3d.ZAxis) != _BoundaryCurve.ClosedCurveOrientation(Vector3d.ZAxis))
+      //   polyOut.Reverse();
 
       return polyOut;
     }
 
     public void RunFirstFloor(double _seamFactor, out string message)
     {
-      message = "Noe";
+      message = "None";
       double areaMissing;
       if(CheckOverallArea(out areaMissing) == false){
         //if(!inRevit)
         areaMissing *= 0.000001;
-        message = String.Format("Floor plate not large enough, short by {0} sqm", areaMissing);
+        message = string.Format("Floor plate not large enough, short by {0} sqm", areaMissing);
       }
       else
         message = "All areas fit.";
 
       {
         InitSubSpaces(_seamFactor, coreCrvs);
-        _PlacedProgram = new DataTree<Polygon>();
-
+        _PlacedProgram = new Dictionary<int, List<SmSpace>>();
         //smart slivers ordered by their origigal index
         var stSubs = _smSubSpaces.OrderBy(s => s._shiftIndex).ToList();
 
@@ -176,7 +176,7 @@ using System.Linq;
         }
 
         List<string> tempNames = new List<string>();
-        for (int i = 0; i < _PlacedProgram.BranchCount; i++)
+        for (int i = 0; i < _PlacedProgram.Keys.Count(); i++)
           tempNames.Add(_spaces[i]);
 
         ProcessPolygons(this._PlacedProgram, tempNames);
@@ -206,7 +206,7 @@ using System.Linq;
     public bool TryProject(List<SmSpace> firstLvlUnits, Curve offCrv, Curve mainCrv, SmLevel level)
     {
       bool worked = false;
-      var workPlane = new Plane(new Point3d(0, 0, level._elevation), Vector3d.ZAxis);
+      var workPlane = new Plane(new Vector3(0, 0, level._elevation), Vector3.ZAxis);
 
       for (int i = 0; i < firstLvlUnits.Count; i++)
       {
@@ -217,7 +217,7 @@ using System.Linq;
         if(movedCrv.TryGetPolyline(out poly))
         {
           //worked = true;
-          var segments = poly.BreakAtAngles(20);
+          var segments = poly.Segments();
 
           var pts = segments.Select(s => s.PointAt(0)).ToList(); // getting unit crv poly pts
           string mess;
@@ -225,8 +225,8 @@ using System.Linq;
 
           if(inBool)
           {
-            var unitN = new SmSpace(firstLvlUnits[i]._name, firstLvlUnits[i]._area);
-            unitN.curve = movedCrv;
+            var unitN = new SmSpace(firstLvlUnits[i].roomNumber, firstLvlUnits[i].area);
+            unitN.poly = movedCrv;
             PlacedSpaces.Add(unitN);
             worked = true;
           }
@@ -235,8 +235,8 @@ using System.Linq;
             Curve crvOut;
             if(TrimKeep(mainCrv, movedCrv, out crvOut, level))
             {
-              var unitN = new SmSpace(firstLvlUnits[i]._name, firstLvlUnits[i]._area);
-              unitN.curve = crvOut;
+              var unitN = new SmSpace(firstLvlUnits[i].roomNumber, firstLvlUnits[i].area);
+              unitN.poly = crvOut;
               PlacedSpaces.Add(unitN);
               worked = true;
             }
@@ -262,11 +262,11 @@ using System.Linq;
 
       var faces = face.Split(cutC, 0.1).ToList();
 
-      Plane workPlane = new Plane(new Point3d(0, 0, level._elevation), Vector3d.ZAxis);
+      Plane workPlane = new Plane(new Vector3(0, 0, level._elevation), Vector3.ZAxis);
 
       for (int i = 0; i < faces.Count; i++)
       {
-        if(trimCrv.Contains(faces[i].GetBoundingBox(true).Center, workPlane, 0.1) == PointContainment.Inside)
+        if(new Polygon(trimCrv.ToPolyline().Vertices).Contains(faces[i]))
         {
           var nakedCrvs = faces[i].DuplicateNakedEdgeCurves(true, false);
           crvOut = Curve.JoinCurves(nakedCrvs)[0];
@@ -279,19 +279,17 @@ using System.Linq;
     }
 
 
-    public bool AllPtsIn(Curve curve, List<Point3d> pts, out string message)
+    public bool AllPtsIn(Curve curve, List<Vector3> pts, out string message)
     {
       bool allIn = true;
       message = "clean";
 
       int countIn = 0;
 
-
-      Plane workPlane = new Plane(curve.PointAt(0), Vector3d.ZAxis);
+      Plane workPlane = new Plane(curve.PointAt(0), Vector3.ZAxis);
       for (int i = 0; i < pts.Count; i++)
-        if(curve.Contains(pts[i], workPlane, 0.1) == PointContainment.Inside)
+        if(new Polygon(curve.ToPolyline().Vertices).Contains(pts[i]))
           countIn++;
-
       if(countIn == 0)
         allIn = false;
       else if(countIn == pts.Count)
@@ -318,7 +316,7 @@ using System.Linq;
 
       while(Placed == false)
       {
-        if(Math.Abs(areaAccumulated - space._area) < threshold){
+        if(Math.Abs(areaAccumulated - space.area) < threshold){
 
           if(indecesforPurgin.Contains(stSubs[_GlobalIndex]._stIndex))
           {
@@ -334,8 +332,8 @@ using System.Linq;
               else{
                 int twIndex = stSubs[_GlobalIndex]._shiftIndex;
 
-                _PlacedProgram.Add(stSubs[twIndex]._Polygon, new GH_Path(spaceIndex));
-                areaAccumulated += stSubs[twIndex]._Polygon.GetArea();
+                _PlacedProgram.Add(stSubs[twIndex]._poly, new GH_Path(spaceIndex));
+                areaAccumulated += stSubs[twIndex]._poly.Area();
 
                 _GlobalIndex++;
               }
@@ -350,8 +348,8 @@ using System.Linq;
           break;
 
         int twIndexy = stSubs[_GlobalIndex]._shiftIndex;
-        _PlacedProgram.Add(stSubs[twIndexy]._Polygon, new GH_Path(spaceIndex));
-        areaAccumulated += stSubs[twIndexy]._Polygon.GetArea();
+        _PlacedProgram.Add(stSubs[twIndexy]._poly, new GH_Path(spaceIndex));
+        areaAccumulated += stSubs[twIndexy]._poly.Area();
 
         _GlobalIndex++;
 
@@ -374,71 +372,62 @@ using System.Linq;
 
       }
 
-      if(_MainFace.GetArea() <= areaRequested){
-        areaMissing = areaRequested - _MainFace.GetArea();
+      if(_MainFace.Area() <= areaRequested){
+        areaMissing = areaRequested - _MainFace.Area();
         suffArea = false;
       }
       return suffArea;
     }
 
-    public void InitSpaces()
+    // public void InitSpaces()
+    // {
+    //   _PlaceableSpaces = new List<SmSpace>();
+
+    //   for (int i = 0; i < _areas.Count; i++)
+    //     _PlaceableSpaces.Add(new SmSpace(_spaces[i], _areas[i]));
+    //     new SmSpace()
+    // }
+
+    public void InitWalls()
     {
-      _PlaceableSpaces = new List<SmSpace>();
-
-      for (int i = 0; i < _areas.Count; i++)
-        _PlaceableSpaces.Add(new SmSpace(_spaces[i], _areas[i]));
-        new SmSpace()
-    }
-
-    public void InitWalls(out Mesh outMesh)
-    {
-
-      var insetCore = _Core.ToNurbsCurve();
-      Plane plane = new Plane(_Core.PointAt(0.0), Vector3d.ZAxis);
+      var insetCore = _Core;
+      Plane plane = new Plane(_Core.PointAt(0.0), Vector3.ZAxis);
 
       double offsetInset = 0.25;
       offsetInset *= _worldScale;
 
-      var offsetCrvs = new List<Curve>();
-      var insetOffset1 = insetCore.Offset(plane, -offsetInset, 0.01, CurveOffsetCornerStyle.Sharp)[0];
-      var insetOffset2 = insetCore.Offset(plane, offsetInset, 0.01, CurveOffsetCornerStyle.Sharp)[0];
-      offsetCrvs.Add(insetOffset1);
-      offsetCrvs.Add(insetOffset2);
-      var insetOffset = offsetCrvs.OrderBy(o => o.GetLength()).ToList()[0];
-
+      Polyline [] offsetCrvs = new Polyline [2];
+      offsetCrvs[0] = insetCore.ToPolyline().Offset(-medOffset, EndType.ClosedPolygon)[0];
+      offsetCrvs[1] = insetCore.ToPolyline().Offset(medOffset, EndType.ClosedPolygon)[0];
+      var insetOffset = offsetCrvs.OrderBy(o => o.Length()).ToList()[0];
 
       double extrusionDepth = 5.0;
       extrusionDepth *= _worldScale;
 
-
       double moveDownLength = extrusionDepth * 0.5;
 
       var inCoreMesh = new Mesh();
-      var extPolygon = Extrusion.Create(insetOffset, extrusionDepth, false);
+      // var extPolygon = Extrusion.Create(insetOffset, extrusionDepth, false);
 
-      Vector3d zDelta = new Vector3d(0, 0, plane.Origin.Z) - new Vector3d(0, 0, extPolygon.GetBoundingBox(true).Center.Z);
 
-      Transform moveDown = Transform.Translation(zDelta);
-      extPolygon.Transform(moveDown);
-      var premeshPolygon = extPolygon.ToPolygon();
-      var mesher = Mesh.CreateFromPolygon(premeshPolygon, MeshingParameters.Default);
-      inCoreMesh.Append(mesher);
+      // var extPolygon = new Representation(new SolidOperation[] { new Extrude(new Profile(new Polygon(insetOffset.Vertices)), extrusionDepth, Vector3.ZAxis, false) });
 
-      outMesh = inCoreMesh.DuplicateMesh();
+      Vector3 zDelta = new Vector3(0, 0, plane.Origin.Z) - new Vector3(0, 0, plane.Origin.Z + extrusionDepth * 0.5);
 
-      var boundaryMesh = new Mesh();
-      var extPolygon2 = Extrusion.Create(_boundaryPoly.ToNurbsCurve(), extrusionDepth, false);
-      extPolygon2.Transform(moveDown);
-      var premeshPolygon2 = extPolygon2.ToPolygon();
-      var mesher2 = Mesh.CreateFromPolygon(premeshPolygon2, MeshingParameters.Default);
-      boundaryMesh.Append(mesher2);
+      var insetMass = new Mass(new Profile(new Polygon(insetOffset.Vertices)), extrusionDepth, null, null, new Representation(new SolidOperation[] { new Extrude(new Profile(new Polygon(insetOffset.Vertices)), extrusionDepth, Vector3.ZAxis, false) }), false, Guid.NewGuid(), "");
+
+      insetMass.Transform.Move(new Vector3(0,0, -extrusionDepth * 0.5));
+
+      var outsetMass = new Mass(new Profile(new Polygon(_boundaryPoly.Vertices)), extrusionDepth, null, null, new Representation(new SolidOperation[] { new Extrude(new Profile(new Polygon(_boundaryPoly.Vertices)), extrusionDepth, Vector3.ZAxis, false) }), false, Guid.NewGuid(), "");
+
+      outsetMass.Transform.Move(new Vector3(0,0, -extrusionDepth * 0.5));
 
       _Walls = new List<SmWall>();
 
-      var initCoreLines = _Core.BreakAtAngles(20);
-      var perimLines = _boundaryPoly.BreakAtAngles(20);
+      var initCoreLines = _Core.Segments();
+      var perimLines = _boundaryPoly.Segments();
 
-      double extendAmount = 7.6 * 2.0;
+      double extendAmount = 2.25 * 1.5;
       extendAmount *= _worldScale;
       var _WallA = new SmWall[initCoreLines.Length];
       int[] indices = Enumerable.Range(0, initCoreLines.Length).ToArray();
@@ -447,45 +436,55 @@ using System.Linq;
         // original curve
         SmWall wallTemp;
 
-        var elongWall = initCoreLines[i].ToNurbsCurve().Extend(0, extendAmount);
-        var vec = new Vector3d(initCoreLines[i].Last - initCoreLines[i].First);
-        vec.Unitize();
-        var otherLine = new Line(initCoreLines[i].Last, vec * extendAmount);
+        var v1 = initCoreLines[i].End - initCoreLines[i].Start;
+        var vUnit = v1.Unitized();
+        var elongWalls1 = new Line(initCoreLines[i].Start, vUnit, extendAmount + v1.Length());
+
+        var otherLine = new Line(initCoreLines[i].End, vUnit, extendAmount);
 
         //outer curve
-        var elongWall_O = perimLines[i].ToNurbsCurve().Extend(0, extendAmount);
-        var vec_O = new Vector3d(perimLines[i].Last - perimLines[i].First);
-        vec_O.Unitize();
-        var otherLine_O = new Line(perimLines[i].Last, vec_O * extendAmount);
+        
+        var v2 = perimLines[i].End - perimLines[i].Start;
+        var v2Unit = v2.Unitized();
+        var elongWalls2 = new Line(perimLines[i].Start, v2Unit, extendAmount + v2.Length());
+
+        var otherLine2 = new Line(perimLines[i].End, v2Unit, extendAmount);
 
         //ray from perimeter to curve
-        Ray3d coreRay = new Ray3d(otherLine_O.PointAt(0.0), initCoreLines[i].Last - initCoreLines[i].First);
+        Ray coreRay = new Ray(otherLine2.PointAt(0.0), v1);
+        Ray perimRay = new Ray(otherLine.PointAt(0.0), v2);
 
-        Ray3d perimRay = new Ray3d(otherLine.PointAt(0.0), perimLines[i].Last - perimLines[i].First);
-
-        var intersect1 = Rhino.Geometry.Intersect.Intersection.MeshRay(inCoreMesh, coreRay);
-        var intersect2 = Rhino.Geometry.Intersect.Intersection.MeshRay(boundaryMesh, perimRay);
+        
+        var intersect1 = coreRay.Intersects(insetMass, out var coreInterVecs);
+        var intersect2 = perimRay.Intersects(outsetMass, out var perimInterVecs);
 
         //if(intersect1 > 0.0 && Math.Abs(new Line(perimLines[i].First, coreRay.PointAt(intersect1)).Length - perimLines[i].Length) <= 7.6 * 2 * _worldScale)
-        if(intersect1 > 0.0 && Math.Abs(new Line(initCoreLines[i].First, coreRay.PointAt(intersect1)).Length - initCoreLines[i].Length) <= 7.6 * 1 * _worldScale)
+        if(intersect1 ==true && Math.Abs(new Line(initCoreLines[i].Start, coreInterVecs[0]).Length() - initCoreLines[i].Length()) <= 2.25 * 1.5 * _worldScale)
           // if(intersect1 > 0.0 )
         {
-          var ln = new Line(perimLines[i].First, coreRay.PointAt(intersect1));
-          var extendedCrv = ln.ToNurbsCurve();
+          var ln = new Line(perimLines[i].Start, coreInterVecs[0]);
+           var extendedCrv = ln;
           wallTemp = new SmWall(i, extendedCrv);
-          wallTemp._curve = wallTemp._curve.Extend(CurveEnd.End, 1000.0, CurveExtensionStyle.Line);
-          // _Walls.Add(new SmWall(i, extendedCrv));
+
+          var vec = ln.End- ln.Start;
+          var unitVec = vec.Unitized();
+           var elongWallTemp = new Line(ln.Start, unitVec, 0.5 + vec.Length());
+           wallTemp._curve = elongWallTemp;
+
         }
         else
         {
           //Run standard wall curve
           {
-            var ln = new Line(initCoreLines[i].First, perimRay.PointAt(intersect2));
+            var ln = new Line(initCoreLines[i].Start, perimInterVecs[0]);
 
-            var extendedCrv = ln.ToNurbsCurve();
+            var extendedCrv = ln;
             wallTemp = new SmWall(i, extendedCrv);
-            wallTemp._curve = wallTemp._curve.Extend(CurveEnd.End, 1000.0, CurveExtensionStyle.Line);
 
+            var vec = ln.End- ln.Start;
+            var unitVec = vec.Unitized();
+            var elongWallTemp = new Line(ln.Start, unitVec, 0.5 + vec.Length());
+            wallTemp._curve = elongWallTemp;
           }
         }
         _WallA[i] = wallTemp;
@@ -496,34 +495,34 @@ using System.Linq;
 
     public Polygon [] SortGeo(List<Polygon> Polygons)
     {
-      smAreaPt [] initAreas = new smAreaPt[Polygons.Count];
+      SmAreaPt [] initAreas = new SmAreaPt[Polygons.Count];
       int[] indices = Enumerable.Range(0, Polygons.Count).ToArray();
       System.Threading.Tasks.Parallel.ForEach(indices, (i) => {
         var score = ComputeScoreByCurve(Polygons[i], _SortingCurve);
-        initAreas[i] = new smAreaPt(Polygons[i], score);
+        initAreas[i] = new SmAreaPt(Polygons[i], score);
         });
 
-      var output = initAreas.OrderBy(i => i._score).Select(s => s._Polygon).ToArray();
+      var output = initAreas.OrderBy(i => i._score).Select(s => s._poly).ToArray();
       return output;
     }
 
     public Polygon [] SortGeo(List<Polygon> Polygons, Curve curve)
     {
-      smAreaPt [] initAreas = new smAreaPt[Polygons.Count];
+      SmAreaPt [] initAreas = new SmAreaPt[Polygons.Count];
       int[] indices = Enumerable.Range(0, Polygons.Count).ToArray();
       System.Threading.Tasks.Parallel.ForEach(indices, (i) => {
         var score = ComputeScoreByCurve(Polygons[i], curve);
-        initAreas[i] = new smAreaPt(Polygons[i], score);
+        initAreas[i] = new SmAreaPt(Polygons[i], score);
         });
 
-      var output = initAreas.OrderBy(i => i._score).Select(s => s._Polygon).ToArray();
+      var output = initAreas.OrderBy(i => i._score).Select(s => s._poly).ToArray();
       return output;
     }
 
-    public double ComputeScoreByCurve(Polygon Polygon, Curve curve)
+    public double ComputeScoreByCurve(Polygon polygon, Curve curve)
     {
       double closest_point_param;
-      var localCentroid = Rhino.Geometry.AreaMassProperties.Compute(Polygon).Centroid;
+      var localCentroid = polygon.Centroid();
 
       if (curve.ClosestPoint(localCentroid, out closest_point_param))
         return closest_point_param;
@@ -541,19 +540,19 @@ using System.Linq;
 
 
       int pIntOffset = 0;
-      tPoints = new List<Point3d>();
+      tPoints = new List<Vector3>();
 
       for (int i = 0; i < _QuadAreas.Length; i++)
       {
         var PIndexes = new List<int>();
-        var k = _Walls[i]._curve.GetLength();
+        var k = _Walls[i]._curve.Length();
         var faceIndex = i;
 
         var SCrvs = new List<Curve>();
 
         var dir = _Walls[i]._direction;
 
-        dir /= dir.Length;
+        dir /= dir.Length();
 
         var numMoves = (int) Math.Round(k / _SplitInterval);
 
@@ -568,7 +567,7 @@ using System.Linq;
           Plane p = new Plane(stPt, dir);
           Curve [] crvOut;
           Point3d [] intPts;
-          var intersecty = Rhino.Geometry.Intersect.Intersection.PolygonPlane(_QuadAreas[faceIndex], p, 0.01, out crvOut, out intPts);
+          var intersect = Rhino.Geometry.Intersect.Intersection.PolygonPlane(_QuadAreas[faceIndex], p, 0.01, out crvOut, out intPts);
           if(crvOut != null)
             SCrvs.AddRange(crvOut);
         }
@@ -582,7 +581,7 @@ using System.Linq;
 
 
 
-        Plane testPlane = new Plane(_BoundaryCurve.PointAt(0.0), Vector3d.ZAxis);
+        Plane testPlane = new Plane(_BoundaryCurve.PointAt(0.0), Vector3.ZAxis);
 
 
         for (int j = 0; j < sortedFaces.Count; j++)
@@ -590,14 +589,12 @@ using System.Linq;
 
           for (int c = 0; c < coreInputCrvs.Count; c++)
           {
-            var newC = coreInputCrvs[c].DuplicateCurve();
-            var tform = Transform.PlanarProjection(testPlane);
-            newC.Transform(tform);
+            var newC = coreInputCrvs[c].Transformed(new Transform(0,0, testPlane.Origin.Z));
+            // var tform = Transform.PlanarProjection(testPlane);
+            // newC.Transform(tform);
 
-            var v = sortedFaces[j].DuplicateVertices();
-            var avgPt = AveragePt(v);
-            var amp = Rhino.Geometry.AreaMassProperties.Compute(sortedFaces[j]);
-            var centroid = amp.Centroid;
+            var avgPt = sortedFaces[j].Vertices.Average();
+            var centroid = sortedFaces[j].Centroid();
             tPoints.Add(centroid);
             if(newC.Contains(centroid, testPlane, 0.01) != PointContainment.Outside){
               sortedFaces.RemoveAt(j);
@@ -645,30 +642,27 @@ using System.Linq;
       _SubSpaces = modSubSpaces.ToList();
     }
 
-    public void ProcessPolygons(DataTree<Polygon> PolygonTree, List<string> spaceNames)
+    public void ProcessPolygons(Dictionary<int, List<SmSpace>> PolygonTree, List<string> spaceNames)
     {
 
-      _ProcessedProgram = new DataTree<Polygon>();
+      _ProcessedProgram = new Dictionary<int, SmSpace>();
 
-      SmSpace [] initSpaces = new SmSpace[PolygonTree.BranchCount];
-      int[] indices = Enumerable.Range(0, PolygonTree.BranchCount).ToArray();
+      SmSpace [] initSpaces = new SmSpace[PolygonTree.Keys.Count()];
+      int[] indices = Enumerable.Range(0, initSpaces.Length).ToArray();
       System.Threading.Tasks.Parallel.ForEach(indices, (index) => {
-        var branch = PolygonTree.Branch(index);
-        var mergedPolygon = Polygon.MergePolygons(branch, 0.01);
-        var nakedCrvs = mergedPolygon.DuplicateNakedEdgeCurves(true, false);
-        var jC = Curve.JoinCurves(nakedCrvs)[0];
+        if(PolygonTree.TryGetValue(index, out var branchSpaces))
+        {
+        var branchPolygons = branchSpaces.Select(s=>s.poly).ToList();;
+        var mergedPolygon = Polygon.UnionAll(branchPolygons)[0];
+        initSpaces[index] = new SmSpace(int.Parse(spaceNames[index]), mergedPolygon.Area());
+        initSpaces[index].poly = mergedPolygon;
 
-        var recreated = Polygon.CreatePlanarPolygons(jC, 0.01)[0];
-
-        initSpaces[index] = new SmSpace(spaceNames[index], recreated.GetArea());
-        initSpaces[index].curve = jC;
-        initSpaces[index].index = index;
-
-        _ProcessedProgram.Add(recreated, new GH_Path(index));
+        _ProcessedProgram.Add(index, initSpaces[index]);
+        }
         });
 
       PlacedSpaces = new List<SmSpace>();
-      PlacedSpaces.AddRange(initSpaces.OrderBy(o => o.index).ToList());
+      PlacedSpaces.AddRange(initSpaces.OrderBy(o => o.roomNumber).ToList());
     }
   }
 }

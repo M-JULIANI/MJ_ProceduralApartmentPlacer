@@ -60,8 +60,8 @@ namespace MJProceduralApartmentPlacer
     
         /// <summary>Width of corridor </summary>
         [Newtonsoft.Json.JsonProperty("CorridorWidth", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        [System.ComponentModel.DataAnnotations.Range(3D, 8D)]
-        public double CorridorWidth { get; set; } = 5.5D;
+        [System.ComponentModel.DataAnnotations.Range(3D, 3.5D)]
+        public double CorridorWidth { get; set; } = 2.25D;
     
         [Newtonsoft.Json.JsonProperty("Unit Mix", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public UnitMix UnitMix { get; set; }

@@ -31,5 +31,11 @@ namespace MJProceduralApartmentPlacer
           this.placed = placed;
           this.area = area;
         }
+
+        public SmSpace(int roomNumber, double area)
+        {
+          this.roomNumber = roomNumber;
+          this.area = area;
+        }
       }
 }

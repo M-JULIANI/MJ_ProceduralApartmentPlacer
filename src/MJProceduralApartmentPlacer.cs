@@ -52,7 +52,7 @@ namespace MJProceduralApartmentPlacer
           var listPlaced = new List<SmSpace>();
           try
           {
-            engine = new PlacementEngine(allUnitsPreplaced.OrderBy(u=>u.roomNumber).ToList(), cellSize, _levels, input.CorePolygons, 0.5);
+            engine = new PlacementEngine(allUnitsPreplaced.OrderBy(u=>u.roomNumber).ToList(), (cellSize - input.CorridorWidth) * 0.5, _levels, input.CorePolygons, 0.5);
 
             string feedbackString = "No feedback yet...";
 
