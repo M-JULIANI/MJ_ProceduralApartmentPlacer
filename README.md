@@ -12,6 +12,6 @@ Places an apartment mix in a procedurally generated mass.
 
 |Output Name|Type|Description|
 |---|---|---|
-|Units Placed|Number|Apartment Placed|
-|Units Remaining|Number|Apartments Remaining|
+|Units Placed|Number|Apartment units placed.|
+|Units Remaining|Number|Apartment units remaining/ not placed.|
 

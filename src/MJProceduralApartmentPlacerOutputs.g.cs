@@ -17,13 +17,13 @@ namespace MJProceduralApartmentPlacer
     public class MJProceduralApartmentPlacerOutputs: ResultsBase
     {
 		/// <summary>
-		/// Apartment Placed
+		/// Apartment units placed.
 		/// </summary>
 		[JsonProperty("Units Placed")]
 		public double UnitsPlaced {get;}
 
 		/// <summary>
-		/// Apartments Remaining
+		/// Apartment units remaining/ not placed.
 		/// </summary>
 		[JsonProperty("Units Remaining")]
 		public double UnitsRemaining {get;}

@@ -9,6 +9,10 @@
       "autohide": false,
       "name": "Floors",
       "optional": false
+    },
+    {
+      "name": "CellSize",
+      "optional": false
     }
   ],
   "input_schema": {"type":"object","properties":{"Seam":{"multipleOf":0.01,"default":0.54,"maximum":1,"description":"Parameter that can be adjusted for apartment stack placement.","type":"number","$hyparOrder":2,"minimum":0},"CorePolygons":{"description":"Core polygons around which apartments should be placed.","default":[],"type":"array","$hyparOrder":0,"items":{"name":"CorePolygons","description":"A list of cores the apartments should be placed around.","default":null,"type":"object","$ref":"https://hypar.io/Schemas/Geometry/Polygon.json"}},"CorridorWidth":{"multipleOf":0.5,"default":5.5,"maximum":8,"description":"Width of corridor ","type":"number","$hyparOrder":1,"minimum":3}, 
@@ -83,13 +87,13 @@
     {
       "unit_type": "none",
       "name": "Units Placed",
-      "description": "Apartment Placed",
+      "description": "Apartment units placed.",
       "type": "number"
     },
     {
       "unit_type": "none",
       "name": "Units Remaining",
-      "description": "Apartments Remaining",
+      "description": "Apartment units remaining/ not placed.",
       "type": "number"
     }
   ],
