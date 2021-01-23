@@ -7,7 +7,7 @@
   "model_dependencies": [
     {
       "autohide": false,
-      "name": "Floor",
+      "name": "Floors",
       "optional": false
     }
   ],
@@ -94,7 +94,6 @@
     }
   ],
   "element_types": [
-    "https://prod-api.hypar.io/schemas/Floor",
     "https://prod-api.hypar.io/schemas/Envelope",
     "https://raw.githubusercontent.com/hypar-io/Schemas/master/Room.json",
     "https://prod-api.hypar.io/schemas/ProgramType"
