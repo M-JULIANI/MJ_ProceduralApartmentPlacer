@@ -9,80 +9,9 @@
       "autohide": false,
       "name": "Floors",
       "optional": false
-    },
-    {
-      "name": "CellSize",
-      "optional": false
     }
   ],
-  "input_schema": {"type":"object","properties":{"Seam":{"multipleOf":0.01,"default":0.54,"maximum":1,"description":"Parameter that can be adjusted for apartment stack placement.","type":"number","$hyparOrder":2,"minimum":0},"CorePolygons":{"description":"Core polygons around which apartments should be placed.","default":[],"type":"array","$hyparOrder":0,"items":{"name":"CorePolygons","description":"A list of cores the apartments should be placed around.","default":null,"type":"object","$ref":"https://hypar.io/Schemas/Geometry/Polygon.json"}},"CorridorWidth":{"multipleOf":0.25,"default":2.25,"maximum":3.5,"description":"Width of corridor ","type":"number","$hyparOrder":1,"minimum":3}, 
-   "Unit Mix": {
-    "type": "object",
-    "$hyparStyle": "matrix",
-    "$hyparCanPopOut": true,
-    "properties": {
-       "Nodes": {
-          "type": "array",
-          "items": {
-             "type": "object",
-             "$hyparStyle": "row",
-             "properties": {
-                "Space Type": {
-                   "type": [
-                      "string",
-                      "null"
-                   ]
-                },
-                "Color": {
-                   "description": "",
-                   "$ref": "https://hypar.io/Schemas/Geometry/Color.json"
-                },
-                "Unit Area": {
-                   "type": "number",
-                   "$hyparUnitType": "area"
-                },
-                "Unit Count": {
-                  "type": "number",
-                  "$hyparUnitType": "none"
-               }
-             }
-          },
-          "default": [
-             {
-                "Space Type": "Unit A",
-                "Color": {
-                   "Red": 0.0,
-                   "Green": 0.415,
-                   "Blue": 1.0,
-                   "Alpha": 1
-                },
-                "Target Area": 100
-             },
-             {
-                "Space Type": "Unit B",
-                "Color": {
-                   "Red": 0.0,
-                   "Green": 1.0,
-                   "Blue": 0.517,
-                   "Alpha": 1
-                },
-                "Target Area": 100
-             },
-             {
-                "Space Type": "Unit C",
-                "Color": {
-                   "Red": 0.733,
-                   "Green": 1.0,
-                   "Blue": 0.2,
-                   "Alpha": 1
-                },
-                "Target Area": 300
-             }
-          ]
-       }
-    }
- }
-}},
+  "input_schema": {"type":"object","properties":{"Unit Mix":{"$hyparCanPopOut":true,"default":{"Nodes":[{"Space Type":"Unit A","Unit Count":60,"Unit Area":10,"Target Area":100,"Color":{"Red":0,"Alpha":1,"Blue":1,"Green":0.415}},{"Space Type":"Unit B","Unit Count":60,"Unit Area":20,"Target Area":100,"Color":{"Red":0,"Alpha":1,"Blue":0.517,"Green":1}},{"Space Type":"Unit C","Unit Count":60,"Unit Area":40,"Target Area":300,"Color":{"Red":0.733,"Alpha":1,"Blue":0.2,"Green":1}}]},"type":"object","$hyparOrder":4,"$hyparStyle":"matrix","properties":{"Nodes":{"type":"array","items":{"type":"object","$hyparStyle":"row","properties":{"Space Type":{"type":["string","null"]},"Unit Count":{"type":"number","$hyparUnitType":"none"},"Unit Area":{"type":"number","$hyparUnitType":"area"},"Color":{"description":"","$ref":"https://hypar.io/Schemas/Geometry/Color.json"}}},"default":[{"Space Type":"Unit A","Unit Count":60,"Unit Area":10,"Target Area":100,"Color":{"Red":0,"Alpha":1,"Blue":1,"Green":0.415}},{"Space Type":"Unit B","Unit Count":60,"Unit Area":20,"Target Area":100,"Color":{"Red":0,"Alpha":1,"Blue":0.517,"Green":1}},{"Space Type":"Unit C","Unit Count":60,"Unit Area":40,"Target Area":300,"Color":{"Red":0.733,"Alpha":1,"Blue":0.2,"Green":1}}]}}},"Seam":{"multipleOf":0.01,"default":0.54,"maximum":1,"description":"Parameter that can be adjusted for apartment stack placement.","type":"number","$hyparOrder":3,"minimum":0},"CorePolygons":{"description":"Core polygons around which apartments should be placed.","default":[],"type":"array", "optional": true, "$hyparOrder":2,"items":{"name":"CorePolygons","description":"A list of cores the apartments should be placed around.","default":null,"type":"object","$ref":"https://hypar.io/Schemas/Geometry/Polygon.json"}},"CellSize":{"multipleOf":0.1,"default":8,"maximum":25,"description":"CellSize from MJ_ProceduralMass ","type":"number","$hyparOrder":0,"minimum":6},"CorridorWidth":{"multipleOf":0.25,"default":2.25,"maximum":3.5,"description":"Width of corridor ","type":"number","$hyparOrder":1,"minimum":3}}},
   "outputs": [
     {
       "unit_type": "none",

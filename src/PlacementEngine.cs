@@ -4,13 +4,15 @@ using Elements.Geometry.Solids;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using GeometryEx;
+using System.Threading.Tasks;
 
  namespace MJProceduralApartmentPlacer
 {
  
  public class PlacementEngine
   {
-    private List<SmSpace> _PlaceableSpaces;
+    //private List<SmSpace> _PlaceableSpaces;
     public List<SmWall> _Walls;
 
 
@@ -75,7 +77,7 @@ using System.Linq;
       }
 
       var firstLevel = inLvls.OrderBy(l => l._elevation).ToList()[0];
-      var boundary = firstLevel._boundaries[0].mainCrv;
+      var boundary = firstLevel._boundaries[0].mainPoly;
      // var orientation = boundary.ClosedCurveOrientation(Vector3d.ZAxis);
 
       //boundary.
@@ -406,15 +408,15 @@ using System.Linq;
 
     public void InitWalls()
     {
-      var insetCore = _Core;
+      var insetCore = new Polygon(_Core.Vertices);
       Plane plane = new Plane(_Core.PointAt(0.0), Vector3.ZAxis);
 
       double offsetInset = 0.25;
       offsetInset *= _worldScale;
 
-      Polyline [] offsetCrvs = new Polyline [2];
-      offsetCrvs[0] = insetCore.ToPolyline().Offset(-medOffset, EndType.ClosedPolygon)[0];
-      offsetCrvs[1] = insetCore.ToPolyline().Offset(medOffset, EndType.ClosedPolygon)[0];
+      Polygon [] offsetCrvs = new Polygon [2];
+      offsetCrvs[0] = insetCore.Offset(-medOffset, EndType.ClosedPolygon)[0];
+      offsetCrvs[1] = insetCore.Offset(medOffset, EndType.ClosedPolygon)[0];
       var insetOffset = offsetCrvs.OrderBy(o => o.Length()).ToList()[0];
 
       double extrusionDepth = 5.0;
@@ -430,7 +432,7 @@ using System.Linq;
 
       Vector3 zDelta = new Vector3(0, 0, plane.Origin.Z) - new Vector3(0, 0, plane.Origin.Z + extrusionDepth * 0.5);
 
-      var insetMass = new Mass(new Profile(new Polygon(insetOffset.Vertices)), extrusionDepth, null, null, new Representation(new SolidOperation[] { new Extrude(new Profile(new Polygon(insetOffset.Vertices)), extrusionDepth, Vector3.ZAxis, false) }), false, Guid.NewGuid(), "");
+      var insetMass = new Mass(insetOffset, extrusionDepth, null, null, new Representation(new SolidOperation[] { new Extrude(new Profile(new Polygon(insetOffset.Vertices)), extrusionDepth, Vector3.ZAxis, false) }), false, Guid.NewGuid(), "");
 
       insetMass.Transform.Move(new Vector3(0,0, -extrusionDepth * 0.5));
 
@@ -446,6 +448,9 @@ using System.Linq;
       double extendAmount = 2.25 * 1.5;
       extendAmount *= _worldScale;
       var _WallA = new SmWall[initCoreLines.Length];
+
+      Console.WriteLine("Perim lines: " + perimLines.Count().ToString());
+      Console.WriteLine("Core lines: " + initCoreLines.Length.ToString());
       int[] indices = Enumerable.Range(0, initCoreLines.Length).ToArray();
       System.Threading.Tasks.Parallel.ForEach(indices, (i) => {
 
@@ -492,7 +497,8 @@ using System.Linq;
         {
           //Run standard wall curve
           {
-            var ln = new Line(initCoreLines[i].Start, perimInterVecs[0]);
+           // var ln = new Line(initCoreLines[i].Start, perimInterVecs[0]);
+            var ln = new Line(initCoreLines[i].Start, v2, _leaseOffset);
 
             var extendedCrv = ln;
             wallTemp = new SmWall(i, extendedCrv);

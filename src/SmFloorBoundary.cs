@@ -7,26 +7,23 @@ using System.Linq;
 {
 public class SmFloorBoundary
   {
-    public Curve mainCrv;
-    public Curve offsetCrv;
+    public Polygon mainPoly;
+    public Polygon offsetPoly;
     private double _worldScale = 1.0;
 
-    public SmFloorBoundary(Curve main)
+    public SmFloorBoundary(Polygon main)
     {
-      mainCrv = main;
-      InitOffset();
+      mainPoly = main;
+      InitOffset(mainPoly);
     }
 
-    public void InitOffset()
+    public void InitOffset(Polygon main)
     {
-      var pt = mainCrv.PointAt(0);
-      var plane = new Plane(pt, Vector3.ZAxis);
-
       Polygon [] offsets = new Polygon[2];
-      offsets[0] = mainCrv.ToPolyline().Offset(-1 * _worldScale, EndType.ClosedPolygon)[0];
-      offsets[1] = mainCrv.ToPolyline().Offset(1 * _worldScale, EndType.ClosedPolygon)[0];
+      offsets[0] = main.Offset(-0.5 * _worldScale, EndType.ClosedPolygon)[0];
+      offsets[1] = main.Offset(0.5 * _worldScale, EndType.ClosedPolygon)[0];
 
-      offsetCrv = offsets.OrderByDescending(o => o.Length()).ToList()[0];
+      offsetPoly = offsets.OrderByDescending(o => o.Length()).ToList()[0];
     }
   }
 }

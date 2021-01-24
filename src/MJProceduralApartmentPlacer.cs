@@ -17,17 +17,20 @@ namespace MJProceduralApartmentPlacer
         /// <returns>A MJProceduralApartmentPlacerOutputs instance containing computed results and the model with any new elements.</returns>
         public static MJProceduralApartmentPlacerOutputs Execute(Dictionary<string, Model> inputModels, MJProceduralApartmentPlacerInputs input)
         {
-          if(!inputModels.TryGetValue("Floors", out var floorsModel)){throw new Exception("No floors created. Pleas create those first.");}
+          if(!inputModels.TryGetValue("Floors", out var levelsModel)){throw new Exception("No floors created. Please create those first.");}
 
-          if(!inputModels.TryGetValue("CellSize", out var cellSizeModel)){throw new Exception("No 'CellSize' received from MJProceduralMassing, please make sure you use that function to create an envelope .");}
+          Console.WriteLine("nothing seems to be working");
+          // if(!inputModels.TryGetValue("MJ_ProceduralMass", out var cellSizeModel)){throw new Exception("No 'CellSize' received from MJProceduralMassing, please make sure you use that function to create an envelope .");}
 
-          var cellSize = cellSizeModel.AllElementsOfType<double>().First();
+          //var cellSize = cellSizeModel.AllElementsOfType<double>().First();
+
+          List<ModelCurve> sketches = new List<ModelCurve>();
 
           List<SmLevel> _levels= new List<SmLevel>();
           PlacementEngine engine;
 
           //process levels & floor boundary crvs
-          var allFloorProfiles = floorsModel.AllElementsOfType<Floor>().OrderBy(f=>f.Elevation).ToList();
+          var allFloorProfiles = levelsModel.AllElementsOfType<Floor>().OrderBy(f=>f.Elevation).ToList();
 
           foreach(var f in allFloorProfiles)
           {
@@ -42,9 +45,9 @@ namespace MJProceduralApartmentPlacer
 
           for(int i=0; i< input.UnitMix.Nodes.Count; i++)
           {
-               for(int j=0; j< input.UnitMix.Nodes[j].UnitCount; j++)
+               for(int j=0; j< input.UnitMix.Nodes[i].UnitCount; j++)
                {
-                 allUnitsPreplaced.Add(new SmSpace(i, count, false, input.UnitMix.Nodes[j].UnitArea)); //check to see if 'i' corresponds to the right unit type...
+                 allUnitsPreplaced.Add(new SmSpace(i, count, false, input.UnitMix.Nodes[i].UnitArea)); //check to see if 'i' corresponds to the right unit type...
                  count++;
                }
           }
@@ -52,16 +55,21 @@ namespace MJProceduralApartmentPlacer
           var listPlaced = new List<SmSpace>();
           try
           {
-            engine = new PlacementEngine(allUnitsPreplaced.OrderBy(u=>u.roomNumber).ToList(), (cellSize - input.CorridorWidth) * 0.5, _levels, input.CorePolygons, 0.5);
+            engine = new PlacementEngine(allUnitsPreplaced.OrderBy(u=>u.roomNumber).ToList(), (input.CellSize - input.CorridorWidth) * 0.5, _levels, input.CorePolygons, 0.5);
 
-            engine._Walls.Select(s=>s._curve).ToList();
+            var wallCrvs = engine._Walls.Select(s=>new ModelCurve(s._curve)).ToList();
+
+            Console.WriteLine("WALL COUNT IS: " + wallCrvs.Count.ToString());
+            sketches.AddRange(wallCrvs);
+
+            
 
             //string feedbackString = "No feedback yet...";
 
           //  engine.RunFirstFloor(input.Seam, out feedbackString);
 
-            
-            listPlaced.AddRange(engine.PlacedSpaces);
+            if(engine.PlacedSpaces!= null)
+              listPlaced.AddRange(engine.PlacedSpaces);
 
             // List<string> debugStack;
             // engine.TryStackBuilding(listPlaced, out debugStack);
@@ -85,6 +93,8 @@ namespace MJProceduralApartmentPlacer
 
               output.Model.AddElement(room);
             }
+
+            output.Model.AddElements(sketches);
             
             return output;
         }

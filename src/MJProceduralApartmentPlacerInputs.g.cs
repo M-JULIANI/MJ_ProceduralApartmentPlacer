@@ -29,25 +29,29 @@ namespace MJProceduralApartmentPlacer
     {
         [Newtonsoft.Json.JsonConstructor]
         
-        public MJProceduralApartmentPlacerInputs(double @seam, IList<Polygon> @corePolygons, double @corridorWidth, UnitMix @unitMix, string bucketName, string uploadsBucket, Dictionary<string, string> modelInputKeys, string gltfKey, string elementsKey, string ifcKey):
+        public MJProceduralApartmentPlacerInputs(UnitMix @unitMix, double @seam, IList<Polygon> @corePolygons, double @cellSize, double @corridorWidth, string bucketName, string uploadsBucket, Dictionary<string, string> modelInputKeys, string gltfKey, string elementsKey, string ifcKey):
         base(bucketName, uploadsBucket, modelInputKeys, gltfKey, elementsKey, ifcKey)
         {
             var validator = Validator.Instance.GetFirstValidatorForType<MJProceduralApartmentPlacerInputs>();
             if(validator != null)
             {
-                validator.PreConstruct(new object[]{ @seam, @corePolygons, @corridorWidth, @unitMix});
+                validator.PreConstruct(new object[]{ @unitMix, @seam, @corePolygons, @cellSize, @corridorWidth});
             }
         
+            this.UnitMix = @unitMix;
             this.Seam = @seam;
             this.CorePolygons = @corePolygons;
+            this.CellSize = @cellSize;
             this.CorridorWidth = @corridorWidth;
-            this.UnitMix = @unitMix;
         
             if(validator != null)
             {
                 validator.PostConstruct(this);
             }
         }
+    
+        [Newtonsoft.Json.JsonProperty("Unit Mix", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public UnitMix UnitMix { get; set; }
     
         /// <summary>Parameter that can be adjusted for apartment stack placement.</summary>
         [Newtonsoft.Json.JsonProperty("Seam", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
@@ -58,13 +62,15 @@ namespace MJProceduralApartmentPlacer
         [Newtonsoft.Json.JsonProperty("CorePolygons", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public IList<Polygon> CorePolygons { get; set; }
     
+        /// <summary>CellSize from MJ_ProceduralMass </summary>
+        [Newtonsoft.Json.JsonProperty("CellSize", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Range(6D, 25D)]
+        public double CellSize { get; set; } = 8D;
+    
         /// <summary>Width of corridor </summary>
         [Newtonsoft.Json.JsonProperty("CorridorWidth", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Range(3D, 3.5D)]
         public double CorridorWidth { get; set; } = 2.25D;
-    
-        [Newtonsoft.Json.JsonProperty("Unit Mix", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public UnitMix UnitMix { get; set; }
     
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties = new System.Collections.Generic.Dictionary<string, object>();
     
@@ -121,18 +127,18 @@ namespace MJProceduralApartmentPlacer
     
     {
         [Newtonsoft.Json.JsonConstructor]
-        public Nodes(string @spaceType, Color @color, double @unitArea, double @unitCount)
+        public Nodes(string @spaceType, double @unitCount, double @unitArea, Color @color)
         {
             var validator = Validator.Instance.GetFirstValidatorForType<Nodes>();
             if(validator != null)
             {
-                validator.PreConstruct(new object[]{ @spaceType, @color, @unitArea, @unitCount});
+                validator.PreConstruct(new object[]{ @spaceType, @unitCount, @unitArea, @color});
             }
         
             this.SpaceType = @spaceType;
-            this.Color = @color;
-            this.UnitArea = @unitArea;
             this.UnitCount = @unitCount;
+            this.UnitArea = @unitArea;
+            this.Color = @color;
         
             if(validator != null)
             {
@@ -143,14 +149,14 @@ namespace MJProceduralApartmentPlacer
         [Newtonsoft.Json.JsonProperty("Space Type", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string SpaceType { get; set; }
     
-        [Newtonsoft.Json.JsonProperty("Color", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public Color Color { get; set; }
+        [Newtonsoft.Json.JsonProperty("Unit Count", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double UnitCount { get; set; }
     
         [Newtonsoft.Json.JsonProperty("Unit Area", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public double UnitArea { get; set; }
     
-        [Newtonsoft.Json.JsonProperty("Unit Count", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public double UnitCount { get; set; }
+        [Newtonsoft.Json.JsonProperty("Color", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public Color Color { get; set; }
     
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties = new System.Collections.Generic.Dictionary<string, object>();
     
