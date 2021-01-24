@@ -54,9 +54,11 @@ namespace MJProceduralApartmentPlacer
           {
             engine = new PlacementEngine(allUnitsPreplaced.OrderBy(u=>u.roomNumber).ToList(), (cellSize - input.CorridorWidth) * 0.5, _levels, input.CorePolygons, 0.5);
 
-            string feedbackString = "No feedback yet...";
+            engine._Walls.Select(s=>s._curve).ToList();
 
-            engine.RunFirstFloor(input.Seam, out feedbackString);
+            //string feedbackString = "No feedback yet...";
+
+          //  engine.RunFirstFloor(input.Seam, out feedbackString);
 
             
             listPlaced.AddRange(engine.PlacedSpaces);

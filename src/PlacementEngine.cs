@@ -33,7 +33,7 @@ using System.Linq;
     public SmSlivers [] _smSubSpaces;
 
 //previously datatree<polygon>
-    public Dictionary<int, List<SmSpace>> _PlacedProgram;
+    public Dictionary<int, List<SmSlivers>> _PlacedProgram;
     public Dictionary<int, SmSpace> _ProcessedProgram;
 
     double _SplitInterval;
@@ -150,133 +150,131 @@ using System.Linq;
       return polyOut;
     }
 
-    public void RunFirstFloor(double _seamFactor, out string message)
-    {
-      message = "None";
-      double areaMissing;
-      if(CheckOverallArea(out areaMissing) == false){
-        //if(!inRevit)
-        areaMissing *= 0.000001;
-        message = string.Format("Floor plate not large enough, short by {0} sqm", areaMissing);
-      }
-      else
-        message = "All areas fit.";
+    // public void RunFirstFloor(double _seamFactor, out string message)
+    // {
+    //   message = "None";
+    //   double areaMissing;
+    //   if(CheckOverallArea(out areaMissing) == false){
+    //     //if(!inRevit)
+    //     areaMissing *= 0.000001;
+    //     message = string.Format("Floor plate not large enough, short by {0} sqm", areaMissing);
+    //   }
+    //   else
+    //     message = "All areas fit.";
 
-      {
-        InitSubSpaces(_seamFactor, coreCrvs);
-        _PlacedProgram = new Dictionary<int, List<SmSpace>>();
-        //smart slivers ordered by their origigal index
-        var stSubs = _smSubSpaces.OrderBy(s => s._shiftIndex).ToList();
+    //   {
+    //     InitSubSpaces(_seamFactor, coreCrvs);
+    //     _PlacedProgram = new Dictionary<int, List<SmSlivers>>();
+    //     //smart slivers ordered by their origigal index
+    //     var stSubs = _smSubSpaces.OrderBy(s => s._shiftIndex).ToList();
 
-        for (int i = 0; i < _PlaceableSpaces.Count; i++)
-        {
-          string thing = "";
-          TryPlace(_PlaceableSpaces[i], i, stSubs, out thing);
-          outputString.Add(thing);
-        }
+    //     for (int i = 0; i < _PlaceableSpaces.Count; i++)
+    //     {
+    //       string thing = "";
+    //       TryPlace(_PlaceableSpaces[i], i, stSubs, out thing);
+    //       outputString.Add(thing);
+    //     }
 
-        List<string> tempNames = new List<string>();
-        for (int i = 0; i < _PlacedProgram.Keys.Count(); i++)
-          tempNames.Add(_spaces[i]);
+    //     List<string> tempNames = new List<string>();
+    //     for (int i = 0; i < _PlacedProgram.Keys.Count(); i++)
+    //       tempNames.Add(_spaces[i]);
 
-        ProcessPolygons(this._PlacedProgram, tempNames);
-      }
-    }
+    //     ProcessPolygons(this._PlacedProgram, tempNames);
+    //   }
+    // }
 
-    public void TryStackBuilding(List<SmSpace> units, out List<string> outMess)
-    {
-      outMess = new List<string>();
+    // public void TryStackBuilding(List<SmSpace> units, out List<string> outMess)
+    // {
+    //   outMess = new List<string>();
 
-      var sortedLvls = inLvls.OrderBy(l => l._elevation).ToList();
-      for (int i = 1; i < sortedLvls.Count; i++)//exclude first level
-      {
-        var boundaries = sortedLvls[i]._boundaries;
+    //   var sortedLvls = inLvls.OrderBy(l => l._elevation).ToList();
+    //   for (int i = 1; i < sortedLvls.Count; i++)//exclude first level
+    //   {
+    //     var boundaries = sortedLvls[i]._boundaries;
 
-        for (int j = 0; j < boundaries.Count; j++)
-        {
+    //     for (int j = 0; j < boundaries.Count; j++)
+    //     {
 
-          var mess = TryProject(units, boundaries[j].offsetCrv, boundaries[j].mainCrv, sortedLvls[i]);// ground floor units, various boundaries
-          outMess.Add(mess.ToString());
-        }
+    //       var mess = TryProject(units, boundaries[j].offsetCrv, boundaries[j].mainCrv, sortedLvls[i]);// ground floor units, various boundaries
+    //       outMess.Add(mess.ToString());
+    //     }
 
-      }
+    //   }
 
-    }
+    // }
 
-    public bool TryProject(List<SmSpace> firstLvlUnits, Curve offCrv, Curve mainCrv, SmLevel level)
-    {
-      bool worked = false;
-      var workPlane = new Plane(new Vector3(0, 0, level._elevation), Vector3.ZAxis);
+    // public bool TryProject(List<SmSpace> firstLvlUnits, Curve offCrv, Curve mainCrv, SmLevel level)
+    // {
+    //   bool worked = false;
+    //   var workPlane = new Plane(new Vector3(0, 0, level._elevation), Vector3.ZAxis);
 
-      for (int i = 0; i < firstLvlUnits.Count; i++)
-      {
-        var dupCrv = firstLvlUnits[i].curve.DuplicateCurve();
-        var movedCrv = Rhino.Geometry.Curve.ProjectToPlane(dupCrv, workPlane); // projecting ground units to variable levels
+    //   for (int i = 0; i < firstLvlUnits.Count; i++)
+    //   {
+    //     var dupCrv = firstLvlUnits[i].curve.DuplicateCurve();
+    //     var movedCrv = Rhino.Geometry.Curve.ProjectToPlane(dupCrv, workPlane); // projecting ground units to variable levels
 
-        Polyline poly;
-        if(movedCrv.TryGetPolyline(out poly))
-        {
-          //worked = true;
-          var segments = poly.Segments();
+    //     Polyline poly;
+    //     if(movedCrv.TryGetPolyline(out poly))
+    //     {
+    //       //worked = true;
+    //       var segments = poly.Segments();
 
-          var pts = segments.Select(s => s.PointAt(0)).ToList(); // getting unit crv poly pts
-          string mess;
-          bool inBool = AllPtsIn(offCrv, pts, out mess);
+    //       var pts = segments.Select(s => s.PointAt(0)).ToList(); // getting unit crv poly pts
+    //       string mess;
+    //       bool inBool = AllPtsIn(offCrv, pts, out mess);
 
-          if(inBool)
-          {
-            var unitN = new SmSpace(firstLvlUnits[i].roomNumber, firstLvlUnits[i].area);
-            unitN.poly = movedCrv;
-            PlacedSpaces.Add(unitN);
-            worked = true;
-          }
-          else if (inBool == false && mess == "trim")
-          {
-            Curve crvOut;
-            if(TrimKeep(mainCrv, movedCrv, out crvOut, level))
-            {
-              var unitN = new SmSpace(firstLvlUnits[i].roomNumber, firstLvlUnits[i].area);
-              unitN.poly = crvOut;
-              PlacedSpaces.Add(unitN);
-              worked = true;
-            }
-          }
-        }
-        else
-          continue;
-      }
+    //       if(inBool)
+    //       {
+    //         var unitN = new SmSpace(firstLvlUnits[i].roomNumber, firstLvlUnits[i].area);
+    //         unitN.poly = movedCrv;
+    //         PlacedSpaces.Add(unitN);
+    //         worked = true;
+    //       }
+    //       else if (inBool == false && mess == "trim")
+    //       {
+    //         Curve crvOut;
+    //         if(TrimKeep(mainCrv, movedCrv, out crvOut, level))
+    //         {
+    //           var unitN = new SmSpace(firstLvlUnits[i].roomNumber, firstLvlUnits[i].area);
+    //           unitN.poly = crvOut;
+    //           PlacedSpaces.Add(unitN);
+    //           worked = true;
+    //         }
+    //       }
+    //     }
+    //     else
+    //       continue;
+    //   }
 
-      return worked;
+    //   return worked;
 
-    }
+    // }
 
-    public bool TrimKeep(Curve trimCrv, Curve toTrim, out Curve crvOut, SmLevel level)
-    {
-      bool trimmed = false;
-      var crvs = new List<Curve>();
-      var cutC = new List<Curve>();
-      cutC.Add(trimCrv);
-      crvs.Add(toTrim);
-      var face = Rhino.Geometry.Polygon.CreatePlanarPolygons(crvs, 0.01)[0];
-      crvOut = toTrim;
+    // public bool TrimKeep(Curve trimCrv, Curve toTrim, out Curve crvOut, SmLevel level)
+    // {
+    //   bool trimmed = false;
+    //   var cutC = new List<Curve>();
+    //   cutC.Add(trimCrv);
+    //   var face = new Polygon(toTrim.ToPolyline().Vertices);
+    //   crvOut = toTrim;
 
-      var faces = face.Split(cutC, 0.1).ToList();
+    //   var faces = face.Split(cutC, 0.1).ToList();
 
-      Plane workPlane = new Plane(new Vector3(0, 0, level._elevation), Vector3.ZAxis);
+    //   Plane workPlane = new Plane(new Vector3(0, 0, level._elevation), Vector3.ZAxis);
 
-      for (int i = 0; i < faces.Count; i++)
-      {
-        if(new Polygon(trimCrv.ToPolyline().Vertices).Contains(faces[i]))
-        {
-          var nakedCrvs = faces[i].DuplicateNakedEdgeCurves(true, false);
-          crvOut = Curve.JoinCurves(nakedCrvs)[0];
-          return true;
-        }
+    //   for (int i = 0; i < faces.Count; i++)
+    //   {
+    //     if(new Polygon(trimCrv.ToPolyline().Vertices).Contains(faces[i]))
+    //     {
+    //       var nakedCrvs = faces[i].DuplicateNakedEdgeCurves(true, false);
+    //       crvOut = Curve.JoinCurves(nakedCrvs)[0];
+    //       return true;
+    //     }
 
-      }
+    //   }
 
-      return trimmed;
-    }
+    //   return trimmed;
+    // }
 
 
     public bool AllPtsIn(Curve curve, List<Vector3> pts, out string message)
@@ -330,11 +328,20 @@ using System.Linq;
 
               }
               else{
+
                 int twIndex = stSubs[_GlobalIndex]._shiftIndex;
 
-                _PlacedProgram.Add(stSubs[twIndex]._poly, new GH_Path(spaceIndex));
-                areaAccumulated += stSubs[twIndex]._poly.Area();
-
+                // if dictionary index key exists
+                if(_PlacedProgram.TryGetValue(spaceIndex, out var listSpaces))
+                {
+                  listSpaces.Add(stSubs[twIndex]);
+                }
+                //if it doesnt...
+                else
+                {
+                  _PlacedProgram.Add(spaceIndex, new List<SmSlivers>() {stSubs[twIndex]} );
+                }
+                 areaAccumulated += stSubs[twIndex]._poly.Area();
                 _GlobalIndex++;
               }
             }
@@ -348,7 +355,16 @@ using System.Linq;
           break;
 
         int twIndexy = stSubs[_GlobalIndex]._shiftIndex;
-        _PlacedProgram.Add(stSubs[twIndexy]._poly, new GH_Path(spaceIndex));
+                // if dictionary index key exists
+                if (_PlacedProgram.TryGetValue(spaceIndex, out var _listSpaces))
+                {
+                    _listSpaces.Add(stSubs[twIndexy]);
+                }
+                //if it doesnt...
+                else
+                {
+                    _PlacedProgram.Add(spaceIndex, new List<SmSlivers>() { stSubs[twIndexy] });
+                }
         areaAccumulated += stSubs[twIndexy]._poly.Area();
 
         _GlobalIndex++;
@@ -493,156 +509,156 @@ using System.Linq;
       _Walls.AddRange(_WallA);
     }
 
-    public Polygon [] SortGeo(List<Polygon> Polygons)
-    {
-      SmAreaPt [] initAreas = new SmAreaPt[Polygons.Count];
-      int[] indices = Enumerable.Range(0, Polygons.Count).ToArray();
-      System.Threading.Tasks.Parallel.ForEach(indices, (i) => {
-        var score = ComputeScoreByCurve(Polygons[i], _SortingCurve);
-        initAreas[i] = new SmAreaPt(Polygons[i], score);
-        });
+    // public Polygon [] SortGeo(List<Polygon> Polygons)
+    // {
+    //   SmAreaPt [] initAreas = new SmAreaPt[Polygons.Count];
+    //   int[] indices = Enumerable.Range(0, Polygons.Count).ToArray();
+    //   System.Threading.Tasks.Parallel.ForEach(indices, (i) => {
+    //     var score = ComputeScoreByCurve(Polygons[i], _SortingCurve);
+    //     initAreas[i] = new SmAreaPt(Polygons[i], score);
+    //     });
 
-      var output = initAreas.OrderBy(i => i._score).Select(s => s._poly).ToArray();
-      return output;
-    }
+    //   var output = initAreas.OrderBy(i => i._score).Select(s => s._poly).ToArray();
+    //   return output;
+    // }
 
-    public Polygon [] SortGeo(List<Polygon> Polygons, Curve curve)
-    {
-      SmAreaPt [] initAreas = new SmAreaPt[Polygons.Count];
-      int[] indices = Enumerable.Range(0, Polygons.Count).ToArray();
-      System.Threading.Tasks.Parallel.ForEach(indices, (i) => {
-        var score = ComputeScoreByCurve(Polygons[i], curve);
-        initAreas[i] = new SmAreaPt(Polygons[i], score);
-        });
+    // public Polygon [] SortGeo(List<Polygon> Polygons, Curve curve)
+    // {
+    //   SmAreaPt [] initAreas = new SmAreaPt[Polygons.Count];
+    //   int[] indices = Enumerable.Range(0, Polygons.Count).ToArray();
+    //   System.Threading.Tasks.Parallel.ForEach(indices, (i) => {
+    //     var score = ComputeScoreByCurve(Polygons[i], curve);
+    //     initAreas[i] = new SmAreaPt(Polygons[i], score);
+    //     });
 
-      var output = initAreas.OrderBy(i => i._score).Select(s => s._poly).ToArray();
-      return output;
-    }
+    //   var output = initAreas.OrderBy(i => i._score).Select(s => s._poly).ToArray();
+    //   return output;
+    // }
 
-    public double ComputeScoreByCurve(Polygon polygon, Curve curve)
-    {
-      double closest_point_param;
-      var localCentroid = polygon.Centroid();
+    // public double ComputeScoreByCurve(Polygon polygon, Curve curve)
+    // {
+    //   double closest_point_param;
+    //   var localCentroid = polygon.Centroid();
 
-      if (curve.ClosestPoint(localCentroid, out closest_point_param))
-        return closest_point_param;
-      else
-        return -100.0;
-    }
+    //   if (curve.ClosestPoint(localCentroid, out closest_point_param))
+    //     return closest_point_param;
+    //   else
+    //     return -100.0;
+    // }
 
-    public void InitSubSpaces(double _seamFactor, List<Curve> coreInputCrvs)
-    {
-      var preQuads = _MainFace.Split(_Walls.Select(w => w._curve).ToList(), 0.001).ToList();
+    // public void InitSubSpaces(double _seamFactor, List<Curve> coreInputCrvs)
+    // {
+    //   var preQuads = _MainFace.Split(_Walls.Select(w => w._curve).ToList(), 0.001).ToList();
 
-      _QuadAreas = SortGeo(preQuads);
-      _SubSpaces = new List<Polygon>();
-      indecesforPurgin = new List<int>();
-
-
-      int pIntOffset = 0;
-      tPoints = new List<Vector3>();
-
-      for (int i = 0; i < _QuadAreas.Length; i++)
-      {
-        var PIndexes = new List<int>();
-        var k = _Walls[i]._curve.Length();
-        var faceIndex = i;
-
-        var SCrvs = new List<Curve>();
-
-        var dir = _Walls[i]._direction;
-
-        dir /= dir.Length();
-
-        var numMoves = (int) Math.Round(k / _SplitInterval);
+    //   _QuadAreas = SortGeo(preQuads);
+    //   _SubSpaces = new List<Polygon>();
+    //   indecesforPurgin = new List<int>();
 
 
+    //   int pIntOffset = 0;
+    //   tPoints = new List<Vector3>();
 
-        for (int j = 0; j < numMoves + 1; j++)
-        {
-          var stPt = _Walls[i]._curve.PointAt(0.0);
-          Transform trans = Transform.Translation(dir * (j) *_SplitInterval);
-          stPt.Transform(trans);
+    //   for (int i = 0; i < _QuadAreas.Length; i++)
+    //   {
+    //     var PIndexes = new List<int>();
+    //     var k = _Walls[i]._curve.Length();
+    //     var faceIndex = i;
 
-          Plane p = new Plane(stPt, dir);
-          Curve [] crvOut;
-          Point3d [] intPts;
-          var intersect = Rhino.Geometry.Intersect.Intersection.PolygonPlane(_QuadAreas[faceIndex], p, 0.01, out crvOut, out intPts);
-          if(crvOut != null)
-            SCrvs.AddRange(crvOut);
-        }
+    //     var SCrvs = new List<Curve>();
 
-        var splitFaces = _QuadAreas[faceIndex].Split(SCrvs, 0.01);
+    //     var dir = _Walls[i]._direction;
 
-        var sortedFaces = new List<Polygon>();
+    //     dir /= dir.Length();
 
-        sortedFaces = SortGeo(splitFaces.ToList(), _Walls[i]._curve).ToList();
+    //     var numMoves = (int) Math.Round(k / _SplitInterval);
 
 
 
+    //     for (int j = 0; j < numMoves + 1; j++)
+    //     {
+    //       var stPt = _Walls[i]._curve.PointAt(0.0);
+    //       Transform trans = Transform.Translation(dir * (j) *_SplitInterval);
+    //       stPt.Transform(trans);
 
-        Plane testPlane = new Plane(_BoundaryCurve.PointAt(0.0), Vector3.ZAxis);
+    //       Plane p = new Plane(stPt, dir);
+    //       Curve [] crvOut;
+    //       Point3d [] intPts;
+    //       var intersect = Rhino.Geometry.Intersect.Intersection.PolygonPlane(_QuadAreas[faceIndex], p, 0.01, out crvOut, out intPts);
+    //       if(crvOut != null)
+    //         SCrvs.AddRange(crvOut);
+    //     }
 
+    //     var splitFaces = _QuadAreas[faceIndex].Split(SCrvs, 0.01);
 
-        for (int j = 0; j < sortedFaces.Count; j++)
-        {
+    //     var sortedFaces = new List<Polygon>();
 
-          for (int c = 0; c < coreInputCrvs.Count; c++)
-          {
-            var newC = coreInputCrvs[c].Transformed(new Transform(0,0, testPlane.Origin.Z));
-            // var tform = Transform.PlanarProjection(testPlane);
-            // newC.Transform(tform);
-
-            var avgPt = sortedFaces[j].Vertices.Average();
-            var centroid = sortedFaces[j].Centroid();
-            tPoints.Add(centroid);
-            if(newC.Contains(centroid, testPlane, 0.01) != PointContainment.Outside){
-              sortedFaces.RemoveAt(j);
-              j--;
-            }
-          }
-        }
-
-        sortedFaces = SortGeo(sortedFaces, _Walls[i]._curve).ToList();
-        var sfCount = sortedFaces.Count;
+    //     sortedFaces = SortGeo(splitFaces.ToList(), _Walls[i]._curve).ToList();
 
 
-        for (int s = 6; s >= 0; s--)
-        {
-          var subIndex = sfCount - 1 - s;
-          var subModIndex = pIntOffset + subIndex;
-          if(!PIndexes.Contains(subModIndex))
-            PIndexes.Add(subModIndex);
-        }
 
 
-        _SubSpaces.AddRange(sortedFaces);
-        indecesforPurgin.AddRange(PIndexes);
-        pIntOffset += sfCount;
-      }
+    //     Plane testPlane = new Plane(_BoundaryCurve.PointAt(0.0), Vector3.ZAxis);
 
-      //Init smart slivers
-      _smSubSpaces = new SmSlivers[_SubSpaces.Count];
-      for (int g = 0; g < _smSubSpaces.Length; g++)
-        _smSubSpaces[g] = new SmSlivers(g, _SubSpaces[g]);
 
-      int modIndex = 0;
-      int indexOffset = (int) (_seamFactor * (_SubSpaces.Count));
-      var modSubSpaces = new Polygon[_SubSpaces.Count];
+    //     for (int j = 0; j < sortedFaces.Count; j++)
+    //     {
 
-      var lastIndexContainer = new List<int>();
+    //       for (int c = 0; c < coreInputCrvs.Count; c++)
+    //       {
+    //         var newC = coreInputCrvs[c].Transformed(new Transform(0,0, testPlane.Origin.Z));
+    //         // var tform = Transform.PlanarProjection(testPlane);
+    //         // newC.Transform(tform);
 
-      for (int i = 0; i < _SubSpaces.Count; i++)
-      {
-        modIndex = (i + indexOffset) % _SubSpaces.Count;
-        modSubSpaces[i] = _SubSpaces[modIndex];
-        _smSubSpaces[i]._shiftIndex = modIndex;
-      }
+    //         var avgPt = sortedFaces[j].Vertices.Average();
+    //         var centroid = sortedFaces[j].Centroid();
+    //         tPoints.Add(centroid);
+    //         if(newC.Contains(centroid, testPlane, 0.01) != PointContainment.Outside){
+    //           sortedFaces.RemoveAt(j);
+    //           j--;
+    //         }
+    //       }
+    //     }
 
-      _SubSpaces = modSubSpaces.ToList();
-    }
+    //     sortedFaces = SortGeo(sortedFaces, _Walls[i]._curve).ToList();
+    //     var sfCount = sortedFaces.Count;
 
-    public void ProcessPolygons(Dictionary<int, List<SmSpace>> PolygonTree, List<string> spaceNames)
+
+    //     for (int s = 6; s >= 0; s--)
+    //     {
+    //       var subIndex = sfCount - 1 - s;
+    //       var subModIndex = pIntOffset + subIndex;
+    //       if(!PIndexes.Contains(subModIndex))
+    //         PIndexes.Add(subModIndex);
+    //     }
+
+
+    //     _SubSpaces.AddRange(sortedFaces);
+    //     indecesforPurgin.AddRange(PIndexes);
+    //     pIntOffset += sfCount;
+    //   }
+
+    //   //Init smart slivers
+    //   _smSubSpaces = new SmSlivers[_SubSpaces.Count];
+    //   for (int g = 0; g < _smSubSpaces.Length; g++)
+    //     _smSubSpaces[g] = new SmSlivers(g, _SubSpaces[g]);
+
+    //   int modIndex = 0;
+    //   int indexOffset = (int) (_seamFactor * (_SubSpaces.Count));
+    //   var modSubSpaces = new Polygon[_SubSpaces.Count];
+
+    //   var lastIndexContainer = new List<int>();
+
+    //   for (int i = 0; i < _SubSpaces.Count; i++)
+    //   {
+    //     modIndex = (i + indexOffset) % _SubSpaces.Count;
+    //     modSubSpaces[i] = _SubSpaces[modIndex];
+    //     _smSubSpaces[i]._shiftIndex = modIndex;
+    //   }
+
+    //   _SubSpaces = modSubSpaces.ToList();
+    // }
+
+    public void ProcessPolygons(Dictionary<int, List<SmSlivers>> PolygonTree, List<string> spaceNames)
     {
 
       _ProcessedProgram = new Dictionary<int, SmSpace>();
@@ -652,7 +668,7 @@ using System.Linq;
       System.Threading.Tasks.Parallel.ForEach(indices, (index) => {
         if(PolygonTree.TryGetValue(index, out var branchSpaces))
         {
-        var branchPolygons = branchSpaces.Select(s=>s.poly).ToList();;
+        var branchPolygons = branchSpaces.Select(s=>s._poly).ToList();;
         var mergedPolygon = Polygon.UnionAll(branchPolygons)[0];
         initSpaces[index] = new SmSpace(int.Parse(spaceNames[index]), mergedPolygon.Area());
         initSpaces[index].poly = mergedPolygon;
