@@ -24,10 +24,10 @@ using System.Threading.Tasks;
     public List<int> indecesforPurgin;
 
 
-    Polyline _Core;
+    Polygon _Core;
     public Polyline _BoundaryCurve;
     Polyline _boundaryPoly;
-    public Polyline _SortingCurve;
+    public Polygon _SortingCurve;
     public Polygon _MainFace;
     public Polygon [] _QuadAreas;
     public List<Polygon> _SubSpaces;
@@ -80,6 +80,8 @@ using System.Threading.Tasks;
       var boundary = firstLevel._boundaries[0].mainPoly;
      // var orientation = boundary.ClosedCurveOrientation(Vector3d.ZAxis);
 
+   
+
       //boundary.
 
       // if(orientation != CurveOrientation.Clockwise)
@@ -93,9 +95,16 @@ using System.Threading.Tasks;
      _boundaryPoly = tempPoly;
       _BoundaryCurve = boundary.ToPolyline();
 
-      _Core = InitCoreCrv();
+      _Core = InitCoreCrv(boundary);
 
-      _SortingCurve = InitSortingCrv(_BoundaryCurve);
+
+     // var off = boundary.Offset(-leaseDepth, EndType.ClosedPolygon)[0];
+
+  
+
+    
+
+      _SortingCurve = InitSortingCrv(boundary);
 
       // if(_BoundaryCurve.Segments().Length != _SortingCurve.Segments().Length)
       //   _SortingCurve = _BoundaryCurve;
@@ -117,39 +126,39 @@ using System.Threading.Tasks;
       _MainFace = Polygon.UnionAll(crvs)[0];
 
       //InitSpaces();
-      InitWalls();
+     InitWalls();
+
+    
 
 
 
 
     }
 
-    public Polyline InitSortingCrv(Curve boundaryCurve)
+    public Polygon InitSortingCrv(Polygon boundarypoly)
     {
-      Polyline selectedCrv;
-      var plane = new Plane(boundaryCurve.PointAt(0.0), Vector3.ZAxis);
+      Polygon selectedCrv;
 
-      Polyline [] offsetCrvs = new Polyline [2];
-      offsetCrvs[0] = boundaryCurve.ToPolyline().Offset(-medOffset, EndType.ClosedPolygon)[0];
-      offsetCrvs[1] = boundaryCurve.ToPolyline().Offset(medOffset, EndType.ClosedPolygon)[0];
+      double midLease = _leaseOffset * 0.5;
+      Polygon [] offsetCrvs = new Polygon [2];
+      offsetCrvs[0] = boundarypoly.ToPolyline().Offset(-midLease, EndType.ClosedPolygon)[0];
+      offsetCrvs[1] = boundarypoly.ToPolyline().Offset(midLease, EndType.ClosedPolygon)[0];
 
 
       selectedCrv = offsetCrvs.OrderBy(o => o.Length()).ToList()[0];
       return selectedCrv;
     }
 
-    public Polyline InitCoreCrv()
+    public Polygon InitCoreCrv(Polygon poly)
     {
 
-      Plane workPlane = new Plane(_boundaryPoly.PointAt(0.0), Vector3.ZAxis);
-      Curve insetOffset = _BoundaryCurve.Offset(_leaseOffset, EndType.ClosedPolygon)[0];
-
-      Polyline polyOut= insetOffset.ToPolyline();
+     // Plane workPlane = new Plane(_boundaryPoly.PointAt(0.0), Vector3.ZAxis);
+      Polygon insetOffset = poly.Offset(-_leaseOffset, EndType.ClosedPolygon)[0];
 
       // if(polyOut.ToNurbsCurve().ClosedCurveOrientation(Vector3d.ZAxis) != _BoundaryCurve.ClosedCurveOrientation(Vector3d.ZAxis))
       //   polyOut.Reverse();
 
-      return polyOut;
+      return insetOffset;
     }
 
     // public void RunFirstFloor(double _seamFactor, out string message)
@@ -406,113 +415,98 @@ using System.Threading.Tasks;
     //     new SmSpace()
     // }
 
+
+    bool IntersectsGroupOfLines(Ray ray, Line [] linesToIntersect, out Vector3 firstVec)
+    {
+      bool hit = false;
+      firstVec = Vector3.Origin;
+
+      for(int i=0; i< linesToIntersect.Length; i++)
+      {
+        Vector3 hitResult;
+        if(ray.Intersects(linesToIntersect[i], out hitResult))
+        {
+          firstVec = hitResult;
+         return true;
+        }
+      }
+
+      return hit;
+    }
     public void InitWalls()
     {
-      var insetCore = new Polygon(_Core.Vertices);
-      Plane plane = new Plane(_Core.PointAt(0.0), Vector3.ZAxis);
-
-      double offsetInset = 0.25;
-      offsetInset *= _worldScale;
-
-      Polygon [] offsetCrvs = new Polygon [2];
-      offsetCrvs[0] = insetCore.Offset(-medOffset, EndType.ClosedPolygon)[0];
-      offsetCrvs[1] = insetCore.Offset(medOffset, EndType.ClosedPolygon)[0];
-      var insetOffset = offsetCrvs.OrderBy(o => o.Length()).ToList()[0];
-
-      double extrusionDepth = 5.0;
-      extrusionDepth *= _worldScale;
-
-      double moveDownLength = extrusionDepth * 0.5;
-
-      var inCoreMesh = new Mesh();
-      // var extPolygon = Extrusion.Create(insetOffset, extrusionDepth, false);
-
-
-      // var extPolygon = new Representation(new SolidOperation[] { new Extrude(new Profile(new Polygon(insetOffset.Vertices)), extrusionDepth, Vector3.ZAxis, false) });
-
-      Vector3 zDelta = new Vector3(0, 0, plane.Origin.Z) - new Vector3(0, 0, plane.Origin.Z + extrusionDepth * 0.5);
-
-      var insetMass = new Mass(insetOffset, extrusionDepth, null, null, new Representation(new SolidOperation[] { new Extrude(new Profile(new Polygon(insetOffset.Vertices)), extrusionDepth, Vector3.ZAxis, false) }), false, Guid.NewGuid(), "");
-
-      insetMass.Transform.Move(new Vector3(0,0, -extrusionDepth * 0.5));
-
-      var outsetMass = new Mass(new Profile(new Polygon(_boundaryPoly.Vertices)), extrusionDepth, null, null, new Representation(new SolidOperation[] { new Extrude(new Profile(new Polygon(_boundaryPoly.Vertices)), extrusionDepth, Vector3.ZAxis, false) }), false, Guid.NewGuid(), "");
-
-      outsetMass.Transform.Move(new Vector3(0,0, -extrusionDepth * 0.5));
-
-      _Walls = new List<SmWall>();
-
+      var innerMostCorePolygon = _Core.Offset(-0.25, EndType.ClosedPolygon)[0];
       var initCoreLines = _Core.Segments();
-      var perimLines = _boundaryPoly.Segments();
 
-      double extendAmount = 2.25 * 1.5;
-      extendAmount *= _worldScale;
-      var _WallA = new SmWall[initCoreLines.Length];
+       _Walls = new List<SmWall>();
+       for ( int i = 0; i< innerMostCorePolygon.Segments().Length; i++)
+       {
+         _Walls.Add(new SmWall(i, innerMostCorePolygon.Segments()[i]));
+       }
+      // int ii = 0;
+      // foreach(var i in _Core.Segments())
+      // {
+      //   _Walls.Add(new SmWall(ii, i.ExtendEnd(_leaseOffset)));
+      //   ii++;
+      // }
+      // var perimLines = _boundaryPoly.Segments();
 
-      Console.WriteLine("Perim lines: " + perimLines.Count().ToString());
-      Console.WriteLine("Core lines: " + initCoreLines.Length.ToString());
-      int[] indices = Enumerable.Range(0, initCoreLines.Length).ToArray();
-      System.Threading.Tasks.Parallel.ForEach(indices, (i) => {
+      // double extendAmount = 2.25 * 1.5;
+      // extendAmount *= _worldScale;
+       var _WallA = new SmWall[initCoreLines.Length];
 
-        // original curve
-        SmWall wallTemp;
+      // Console.WriteLine("Perim lines: " + perimLines.Count().ToString());
+      // Console.WriteLine("Core lines: " + initCoreLines.Length.ToString());
+       int[] indices = Enumerable.Range(0, innerMostCorePolygon.Segments().Length).ToArray();
+       System.Threading.Tasks.Parallel.ForEach(indices, (i) => {
 
-        var v1 = initCoreLines[i].End - initCoreLines[i].Start;
-        var vUnit = v1.Unitized();
-        var elongWalls1 = new Line(initCoreLines[i].Start, vUnit, extendAmount + v1.Length());
+      //   // original curve
+      //   SmWall wallTemp;
+        var startCorePt = initCoreLines[i].PointAt(0.0);
+         var endCorePt = initCoreLines[i].PointAt(1.0);
+          var v1 = initCoreLines[i].End - initCoreLines[i].Start;
 
-        var otherLine = new Line(initCoreLines[i].End, vUnit, extendAmount);
+          var crossDir = v1.Cross(Vector3.ZAxis).Unitized();
+          var crossStart = startCorePt + crossDir * _leaseOffset;
+           var crossEnd = endCorePt + crossDir * _leaseOffset;
+      //   var vUnit = v1.Unitized();
+      //   var elongWalls1 = new Line(initCoreLines[i].Start, vUnit, extendAmount + v1.Length());
 
-        //outer curve
+      //   var otherLine = new Line(initCoreLines[i].End, vUnit, extendAmount);
+
+      //   //outer curve
         
-        var v2 = perimLines[i].End - perimLines[i].Start;
-        var v2Unit = v2.Unitized();
-        var elongWalls2 = new Line(perimLines[i].Start, v2Unit, extendAmount + v2.Length());
+      //   var v2 = perimLines[i].End - perimLines[i].Start;
+      //   var v2Unit = v2.Unitized();
+      //   var elongWalls2 = new Line(perimLines[i].Start, v2Unit, extendAmount + v2.Length());
 
-        var otherLine2 = new Line(perimLines[i].End, v2Unit, extendAmount);
+      //   var otherLine2 = new Line(perimLines[i].End, v2Unit, extendAmount);
 
-        //ray from perimeter to curve
-        Ray coreRay = new Ray(otherLine2.PointAt(0.0), v1);
-        Ray perimRay = new Ray(otherLine.PointAt(0.0), v2);
+      //   //ray from perimeter to curve
+         Ray coreRay = new Ray(startCorePt, v1);
+         //Ray perimRay = new Ray(otherLine.PointAt(0.0), v2);
 
-        
-        var intersect1 = coreRay.Intersects(insetMass, out var coreInterVecs);
-        var intersect2 = perimRay.Intersects(outsetMass, out var perimInterVecs);
+        Vector3 intersectVec;
+         if(IntersectsGroupOfLines(coreRay, innerMostCorePolygon.Segments(), out intersectVec))
+         {
+           if(Math.Abs((intersectVec- startCorePt).Length()- initCoreLines[i].Length()+ 0.25) < 1.0)
+           {
+           //use perim logic
+           _WallA[i] = new SmWall(i, new Line(crossStart, crossEnd));
+           }
+           else
+           {
+              _WallA[i] = new SmWall(i, initCoreLines[i].ExtendEnd(_leaseOffset));
+           }
 
-        //if(intersect1 > 0.0 && Math.Abs(new Line(perimLines[i].First, coreRay.PointAt(intersect1)).Length - perimLines[i].Length) <= 7.6 * 2 * _worldScale)
-        if(intersect1 ==true && Math.Abs(new Line(initCoreLines[i].Start, coreInterVecs[0]).Length() - initCoreLines[i].Length()) <= 2.25 * 1.5 * _worldScale)
-          // if(intersect1 > 0.0 )
-        {
-          var ln = new Line(perimLines[i].Start, coreInterVecs[0]);
-           var extendedCrv = ln;
-          wallTemp = new SmWall(i, extendedCrv);
+         }
+         else
+         {
+          _WallA[i] = new SmWall(i, initCoreLines[i].ExtendEnd(_leaseOffset));
+         }
+         });
 
-          var vec = ln.End- ln.Start;
-          var unitVec = vec.Unitized();
-           var elongWallTemp = new Line(ln.Start, unitVec, 0.5 + vec.Length());
-           wallTemp._curve = elongWallTemp;
-
-        }
-        else
-        {
-          //Run standard wall curve
-          {
-           // var ln = new Line(initCoreLines[i].Start, perimInterVecs[0]);
-            var ln = new Line(initCoreLines[i].Start, v2, _leaseOffset);
-
-            var extendedCrv = ln;
-            wallTemp = new SmWall(i, extendedCrv);
-
-            var vec = ln.End- ln.Start;
-            var unitVec = vec.Unitized();
-            var elongWallTemp = new Line(ln.Start, unitVec, 0.5 + vec.Length());
-            wallTemp._curve = elongWallTemp;
-          }
-        }
-        _WallA[i] = wallTemp;
-        });
-
-      _Walls.AddRange(_WallA);
+       _Walls.AddRange(_WallA);
     }
 
     // public Polygon [] SortGeo(List<Polygon> Polygons)
