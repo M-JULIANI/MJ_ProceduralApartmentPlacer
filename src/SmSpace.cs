@@ -49,7 +49,7 @@ namespace MJProceduralApartmentPlacer
           this.designArea = designArea;
         }
 
-        public SmSpace(int roomNumber, double area)
+        public SmSpace(int roomNumber, double designArea)
         {
           this.roomNumber = roomNumber;
           this.sorter = roomNumber;
@@ -74,7 +74,7 @@ namespace MJProceduralApartmentPlacer
             var newSpaces = new SmSpace[array.Length];
             for(int i=0; i< array.Length; i++)
             {
-              newSpaces[i] = new SmSpace(initList[i].type, initList[i].roomNumber, false, initList[i].area);
+              newSpaces[i] = new SmSpace(initList[i].type, initList[i].roomNumber, false, initList[i].designArea);
               newSpaces[i].sorter = array[i];     
             }
 

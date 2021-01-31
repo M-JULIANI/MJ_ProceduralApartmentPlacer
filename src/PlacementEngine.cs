@@ -48,8 +48,6 @@ using System.Threading.Tasks;
     double medOffset;
 
     public List<Curve> _Inters = new List<Curve>();
-    public List<string> outputString = new List<string>();
-
     public List<SmLevel> inLvls;
 
 public List<Vector3> startPts;
@@ -96,12 +94,12 @@ public List<Vector3> startPts;
 
       spaces = SmSpace.Jitter(spaces, 1.0).ToList();
 
-      for(int i = 0; i< spaces.Count; i++)
-      {
-        Console.WriteLine(spaces[i].type);
-      }
+            // for (int i = 0; i < spaces.Count; i++)
+            // {
+            //     Console.WriteLine($"Type: {spaces[i].type}- Area: {spaces[i].designArea}");
+            // }
 
-       _areas = spaces.OrderBy(s=>s.sorter).Select(s=>s.area).ToList();
+       _areas = spaces.OrderBy(s=>s.sorter).Select(s=>s.designArea).ToList();
        _spaces = spaces.OrderBy(s=>s.sorter).Select(s=>s.roomNumber.ToString()).ToList();
 
        _PlaceableSpaces = spaces.OrderBy(s=>s.sorter).ToList();
@@ -170,7 +168,6 @@ public List<Vector3> startPts;
                     string thing = "";
                     TryPlace(_PlaceableSpaces[i], i, stSubs, out thing);
                     Console.WriteLine(i.ToString() + " " + thing);
-                    outputString.Add(thing);
                 }
 
                 List<string> tempNames = new List<string>();
@@ -186,8 +183,7 @@ public List<Vector3> startPts;
                         var all = slivs.Select(s => s._poly).ToList();
                         var unionest = Polygon.UnionAll(all).ToList()[0];
                         semiSlivers.Add(unionest);
-                        var space = new SmSpace(_PlaceableSpaces[i].type, _PlaceableSpaces[i].roomNumber, true, unionest.Area());
-                        space.poly = unionest;
+                        var space = new SmSpace(_PlaceableSpaces[i].type, _PlaceableSpaces[i].roomNumber, true, _PlaceableSpaces[i].designArea, unionest);
                         space.sorter = i;
                         _PlacedProgramSpaces.Add(space);
                     }
@@ -324,13 +320,13 @@ public List<Vector3> startPts;
       var areaAccumulated = 0.0;
       report = "Placeholder!";
 
-      double threshold = 5.0;
+      double threshold = _leaseOffset * 0.5 + 0.25;
       //if(!inRevit)
       threshold *= (_worldScale * _worldScale);
 
       while(Placed == false)
       {
-        if(Math.Abs(areaAccumulated - space.area) < threshold){
+        if(Math.Abs(areaAccumulated - space.designArea) < threshold){
 
           if(indecesforPurgin.Contains(stSubs[_GlobalIndex]._stIndex))
           {
@@ -351,6 +347,9 @@ public List<Vector3> startPts;
                 if(_PlacedProgramSlivers.TryGetValue(spaceIndex, out var listSpaces))
                 {
                   listSpaces.Add(stSubs[twIndex]);
+                  var newList = new List<SmSlivers>();
+                  newList.AddRange(listSpaces);
+                  _PlacedProgramSlivers[spaceIndex] = newList;
                 }
                 //if it doesnt...
                 else
@@ -375,6 +374,9 @@ public List<Vector3> startPts;
                 if (_PlacedProgramSlivers.TryGetValue(spaceIndex, out var _listSpaces))
                 {
                     _listSpaces.Add(stSubs[twIndexy]);
+                  var newList = new List<SmSlivers>();
+                  newList.AddRange(_listSpaces);
+                  _PlacedProgramSlivers[spaceIndex] = newList;
                 }
                 //if it doesnt...
                 else
@@ -701,7 +703,7 @@ public List<Vector3> startPts;
 
               var sfCount = sortedFaces.Count;
 
-              for (int s = 3; s >= 0; s--)
+              for (int s = 6; s >= 0; s--)
               {
                 var subIndex = sfCount - 1 - s;
                 var subModIndex = pIntOffset + subIndex;

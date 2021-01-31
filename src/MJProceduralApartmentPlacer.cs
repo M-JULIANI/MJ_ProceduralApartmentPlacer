@@ -88,6 +88,7 @@ namespace MJProceduralApartmentPlacer
             Console.WriteLine($"Main feedback: {feedbackString}");
 
             placedSpaces = engine._PlacedProgramSpaces.ToList();
+            Console.WriteLine("rooms should be: " + placedSpaces.Count.ToString());
 
              
 
@@ -113,7 +114,7 @@ namespace MJProceduralApartmentPlacer
               for(int i=0; i< input.UnitMix.Nodes.Count; i++)
           {
             var col = input.UnitMix.Nodes[i].Color;
-              col.Alpha = 0.75;
+               col.Alpha = 0.75;
               materials[i] = new Material(input.UnitMix.Nodes[i].SpaceType, col, 0.0f, 0.0f);
           }
 
@@ -121,7 +122,7 @@ namespace MJProceduralApartmentPlacer
             {
             var representation = new Representation(new SolidOperation[] { new Extrude(placedSpaces[i].poly.Offset(-0.1)[0], 2.0, Vector3.ZAxis, false) });
 
-              var room = new Room(placedSpaces[i].poly.Offset(-0.1)[0], Vector3.ZAxis, $"Unit {placedSpaces[i].roomNumber}", $"{placedSpaces[i].roomNumber}", $"Type {placedSpaces[i].type}", placedSpaces[i].sorter.ToString(), placedSpaces[i].designArea, 0.0, 0.0, placedSpaces[i].poly.Centroid().Z, 2.0, placedSpaces[i].area, new Transform(0,0, placedSpaces[i].poly.Centroid().Z), materials[placedSpaces[i].type], representation, false, Guid.NewGuid(), "");
+              var room = new Room(placedSpaces[i].poly.Offset(-0.1)[0], Vector3.ZAxis, $"Unit {placedSpaces[i].roomNumber}", $"{placedSpaces[i].roomNumber}", $"Type {placedSpaces[i].type}", placedSpaces[i].sorter.ToString(), placedSpaces[i].designArea, 1.0, 0.0, placedSpaces[i].poly.Centroid().Z, 2.0, placedSpaces[i].area, new Transform(0,0, placedSpaces[i].poly.Centroid().Z), materials[placedSpaces[i].type], representation, false, Guid.NewGuid(), "");
 
               output.Model.AddElement(room);
             }    
@@ -150,8 +151,8 @@ namespace MJProceduralApartmentPlacer
 
             //output.Model.AddElements(sketches);
             output.Model.AddElements(coreSketch);
-            output.Model.AddElements(subSpaceSketch);
-          //  output.Model.AddElements(sliverSketch);
+            //output.Model.AddElements(subSpaceSketch);
+            output.Model.AddElements(sliverSketch);
 
             // Console.WriteLine("sliver count is: "+ engine._SubSpaces.Length.ToString());
            
