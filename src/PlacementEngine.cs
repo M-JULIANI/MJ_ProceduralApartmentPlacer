@@ -320,7 +320,7 @@ public List<Vector3> startPts;
       var areaAccumulated = 0.0;
       report = "Placeholder!";
 
-      double threshold = _leaseOffset * 0.5 + 0.25;
+      double threshold = _leaseOffset *1.5;
       //if(!inRevit)
       threshold *= (_worldScale * _worldScale);
 
@@ -350,6 +350,7 @@ public List<Vector3> startPts;
                   var newList = new List<SmSlivers>();
                   newList.AddRange(listSpaces);
                   _PlacedProgramSlivers[spaceIndex] = newList;
+              
                 }
                 //if it doesnt...
                 else
@@ -377,6 +378,7 @@ public List<Vector3> startPts;
                   var newList = new List<SmSlivers>();
                   newList.AddRange(_listSpaces);
                   _PlacedProgramSlivers[spaceIndex] = newList;
+
                 }
                 //if it doesnt...
                 else
