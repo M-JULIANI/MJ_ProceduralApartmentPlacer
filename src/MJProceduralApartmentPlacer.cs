@@ -1,5 +1,6 @@
 using Elements;
 using Elements.Geometry;
+using Elements.Geometry.Profiles;
 using Elements.Geometry.Solids;
 using System;
 using System.Collections.Generic;
@@ -53,9 +54,9 @@ namespace MJProceduralApartmentPlacer
           }
 
           var listPlaced = new List<SmSpace>();
-          try
-          {
-            engine = new PlacementEngine(allUnitsPreplaced.OrderBy(u=>u.roomNumber).ToList(), (input.CellSize - input.CorridorWidth) * 0.5, _levels, input.CorePolygons, 0.5);
+         // try
+         // {
+            engine = new PlacementEngine(allUnitsPreplaced.OrderBy(u=>u.roomNumber).ToList(), (input.CellSize - input.CorridorWidth) * 0.5,_levels, input.CorePolygons, 0.5);
 
             var wallCrvs = engine._Walls.Select(s=>new ModelCurve(s._curve)).ToList();
 
@@ -74,11 +75,11 @@ namespace MJProceduralApartmentPlacer
             // List<string> debugStack;
             // engine.TryStackBuilding(listPlaced, out debugStack);
 
-          }
-          catch (Exception e)
-          {
-            Console.WriteLine(e.ToString());
-          }
+         // }
+        //  catch (Exception e)
+         // {
+         //   Console.WriteLine(e.ToString());
+        //  }
 
 
             var output = new MJProceduralApartmentPlacerOutputs(listPlaced.Count, allUnitsPreplaced.Count - listPlaced.Count);
@@ -95,7 +96,20 @@ namespace MJProceduralApartmentPlacer
             }
 
             output.Model.AddElements(sketches);
-            
+
+            var pink = new Material("pink", Colors.Pink);
+
+            var profile = WideFlangeProfileServer.Instance.GetProfileByType(WideFlangeProfileType.W10x100);
+            var pp = 0;
+                        foreach(var p in engine.startPts)
+                        {
+                          if(pp!=0)
+                            break;
+                          output.Model.AddElement(new Column(p, 3.0, profile, BuiltInMaterials.Steel));
+                          pp++;
+                        }
+
+
             return output;
         }
       }

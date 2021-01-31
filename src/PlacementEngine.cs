@@ -19,6 +19,8 @@ using System.Threading.Tasks;
      private List<double> _areas;
      private List<string> _spaces;
 
+     public  List<Vector3> startPts;
+
     private int _GlobalIndex;
 
     public List<int> indecesforPurgin;
@@ -455,6 +457,8 @@ using System.Threading.Tasks;
       // extendAmount *= _worldScale;
        var _WallA = new SmWall[initCoreLines.Length];
 
+
+      startPts = new List<Vector3>();
       // Console.WriteLine("Perim lines: " + perimLines.Count().ToString());
       // Console.WriteLine("Core lines: " + initCoreLines.Length.ToString());
        int[] indices = Enumerable.Range(0, innerMostCorePolygon.Segments().Length).ToArray();
@@ -463,8 +467,10 @@ using System.Threading.Tasks;
       //   // original curve
       //   SmWall wallTemp;
         var startCorePt = initCoreLines[i].PointAt(0.0);
+        startPts.Add(new Vector3(startCorePt.X, startCorePt.Y, startCorePt.Z));
          var endCorePt = initCoreLines[i].PointAt(1.0);
           var v1 = initCoreLines[i].End - initCoreLines[i].Start;
+
 
           var crossDir = v1.Cross(Vector3.ZAxis).Unitized();
           var crossStart = startCorePt + crossDir * _leaseOffset;
@@ -489,20 +495,30 @@ using System.Threading.Tasks;
         Vector3 intersectVec;
          if(IntersectsGroupOfLines(coreRay, innerMostCorePolygon.Segments(), out intersectVec))
          {
-           if(Math.Abs((intersectVec- startCorePt).Length()- initCoreLines[i].Length()+ 0.25) < 1.0)
+           var intersectDist = (intersectVec- startCorePt).Length();
+           var origDist = initCoreLines[i].Length();
+           if(Math.Abs(origDist- intersectDist)+ 0.25 < _leaseOffset)
            {
            //use perim logic
            _WallA[i] = new SmWall(i, new Line(crossStart, crossEnd));
+           Console.WriteLine("intersect!");
            }
            else
            {
               _WallA[i] = new SmWall(i, initCoreLines[i].ExtendEnd(_leaseOffset));
+              Console.WriteLine("NONE!");
+               Console.WriteLine($"{i} - No intersection");
            }
+
+           Console.WriteLine($"{i} - orig dist: {origDist} -- intersectDist: {intersectDist}");
 
          }
          else
          {
           _WallA[i] = new SmWall(i, initCoreLines[i].ExtendEnd(_leaseOffset));
+          Console.WriteLine("NONE!");
+          Console.WriteLine($"{i} - No intersection");
+           
          }
          });
 
