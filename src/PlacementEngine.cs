@@ -34,12 +34,12 @@ using System.Threading.Tasks;
     public Polygon [] _QuadAreas;
     public Polygon [] _SubSpaces;
     public List<Polygon> semiSlivers;
-    public List<Polygon>[] _Slivers;
+    public List<SmSlivers>[] _Slivers;
 
     public SmSlivers [] _smSubSpaces;
 
 //previously datatree<polygon>
-    public Dictionary<int, List<SmSlivers>> _PlacedProgramSlivers;
+    public Dictionary<int, List<Polygon>> _PlacedProgramSlivers;
     public List<SmSpace> _PlacedProgramSpaces;
     public Dictionary<int, SmSpace> _ProcessedProgram;
 
@@ -84,13 +84,12 @@ public List<Vector3> startPts;
       var firstLevel = inLvls.OrderBy(l => l._elevation).ToList()[0];
       var boundary = firstLevel._boundaries[0].mainPoly;
      // var orientation = boundary.ClosedCurveOrientation(Vector3d.ZAxis);
-      var ssspaces = SmSpace.Jitter(spaces, 0.75).ToList();
+      var ssspaces = SmSpace.Jitter(spaces, 0.99).ToList();
 
        _areas = ssspaces.OrderBy(s=>s.sorter).Select(s=>s.designArea).ToList();
        _spaces = ssspaces.OrderBy(s=>s.sorter).Select(s=>s.roomNumber.ToString()).ToList();
 
        _PlaceableSpaces = ssspaces;
-
       Polyline tempPoly= boundary.ToPolyline();
 
      _boundaryPoly = tempPoly;
@@ -146,9 +145,10 @@ public List<Vector3> startPts;
 
             {
                 InitSubSpaces(_seamFactor, coreCrvs);
-                _PlacedProgramSlivers = new Dictionary<int, List<SmSlivers>>();
+                _PlacedProgramSlivers = new Dictionary<int, List<Polygon>>();
                 //smart slivers ordered by their origigal index
                 var stSubs = _smSubSpaces.OrderBy(s => s._shiftIndex).ToList();
+                
 
                 for (int i = 0; i < _PlaceableSpaces.Count; i++)
                 {
@@ -167,32 +167,34 @@ public List<Vector3> startPts;
                     if (_PlacedProgramSlivers.TryGetValue(i, out var slivs))
                     {
 
-                      if(slivs != null && slivs.Count>0)
-                      {
+                     // if(slivs != null && slivs.Count>0)
+                      //{
                         Console.WriteLine("placed program: " + slivs.Count.ToString());
-<<<<<<< HEAD
-                        Polygon unionest;
+                        //Polygon unionest;
                         try{
-                        unionest = Polygon.UnionAll(slivs).ToList()[0];
-=======
-                        var all = slivs.Select(s => s._poly).ToList();
-                        var unionest = Polygon.UnionAll(all).ToList()[0];
->>>>>>> parent of 2fd184e... Solved the 'non propagating room' problem
-                        semiSlivers.Add(unionest);
-                        var space = new SmSpace(_PlaceableSpaces[i].type, _PlaceableSpaces[i].roomNumber, true, _PlaceableSpaces[i].designArea, unionest);
+                        //var rawUnion = Polygon.UnionAll(slivs, 0.000000001);
+                       // if(rawUnion!= null)
+                       // {
+                        //semiSlivers.Add(rawUnion[0]);
+                        foreach(var s in slivs)
+                        {
+                          var space = new SmSpace(_PlaceableSpaces[i].type, _PlaceableSpaces[i].roomNumber, true, _PlaceableSpaces[i].designArea, s);
                         space.sorter = i;
                         _PlacedProgramSpaces.Add(space);
                         }
+                 
+                       // }
+                        }
                         catch(Exception ex)
                         {
-                          Console.WriteLine(ex);
+                          Console.WriteLine(ex + slivs.ToString() + "Count: " + slivs.Count);
                         }
                         
-                      }
-                      else
-                      {
-                        Console.WriteLine("slivs: " + slivs.ToString());
-                      }
+                     // }
+                     // else
+                      //{
+                     //   Console.WriteLine("slivs: " + slivs.ToString());
+                      //}
                     }
 
 
@@ -333,15 +335,10 @@ public List<Vector3> startPts;
 
       while(Placed == false)
       {
-<<<<<<< HEAD
 
         Console.WriteLine($"index: {spaceIndex}, areaAccum: {areaAccumulated}");
-        if(Math.Abs(areaAccumulated - space.designArea) < threshold){
+        if(Math.Abs(areaAccumulated - space.designArea) <= threshold){
 
-=======
-        if(Math.Abs(areaAccumulated - space.designArea) < threshold){
-
->>>>>>> parent of 2fd184e... Solved the 'non propagating room' problem
           if(indecesforPurgin.Contains(stSubs[_GlobalIndex]._stIndex))
           {
             bool placedExtras = false;
@@ -360,18 +357,18 @@ public List<Vector3> startPts;
                 // if dictionary index key exists
                 if(_PlacedProgramSlivers.TryGetValue(spaceIndex, out var listSpaces))
                 {
-                  listSpaces.Add(stSubs[twIndex]);
-                  var newList = new List<SmSlivers>();
-                  newList.AddRange(listSpaces);
-                  _PlacedProgramSlivers[spaceIndex] = newList;
+                  listSpaces.Add(stSubs[twIndex]._poly);
+                  // var newList = new List<Polygon>();
+                  // newList.AddRange(listSpaces);
+                  // _PlacedProgramSlivers[spaceIndex] = newList;
               
                 }
                 //if it doesnt...
                 else
                 {
-                  _PlacedProgramSlivers.Add(spaceIndex, new List<SmSlivers>() {stSubs[twIndex]} );
+                  _PlacedProgramSlivers.Add(spaceIndex, new List<Polygon>() {stSubs[twIndex]._poly} );
                 }
-                 areaAccumulated += stSubs[twIndex]._poly.Area();
+                 areaAccumulated += Math.Abs(stSubs[twIndex]._poly.Area());
                 _GlobalIndex++;
               }
             }
@@ -388,22 +385,18 @@ public List<Vector3> startPts;
                 // if dictionary index key exists
                 if (_PlacedProgramSlivers.TryGetValue(spaceIndex, out var _listSpaces))
                 {
-                    _listSpaces.Add(stSubs[twIndexy]);
-                  var newList = new List<SmSlivers>();
-                  newList.AddRange(_listSpaces);
-                  _PlacedProgramSlivers[spaceIndex] = newList;
+                    _listSpaces.Add(stSubs[twIndexy]._poly);
+                  // var newList = new List<Polygon>();
+                  // newList.AddRange(_listSpaces);
+                  // _PlacedProgramSlivers[spaceIndex] = newList;
 
                 }
                 //if it doesnt...
                 else
                 {
-<<<<<<< HEAD
                     _PlacedProgramSlivers.Add(spaceIndex, new List<Polygon>() { stSubs[twIndexy]._poly});
-=======
-                    _PlacedProgramSlivers.Add(spaceIndex, new List<SmSlivers>() { stSubs[twIndexy] });
->>>>>>> parent of 2fd184e... Solved the 'non propagating room' problem
                 }
-        areaAccumulated += stSubs[twIndexy]._poly.Area();
+        areaAccumulated += Math.Abs(stSubs[twIndexy]._poly.Area());
 
         _GlobalIndex++;
 
@@ -523,15 +516,15 @@ public List<Vector3> startPts;
         //   return output;
         // }
 
-        public Polygon [] SortGeo(List<Polygon> Polygons, Curve curve, bool flipped)
+        public Polygon [] SortGeo(List<SmSlivers> Slivers, Curve curve, bool flipped)
         {
-          SmAreaPt [] initAreas = new SmAreaPt[Polygons.Count];
+          SmAreaPt [] initAreas = new SmAreaPt[Slivers.Count];
           //int[] indices = Enumerable.Range(0, Polygons.Count).ToArray();
          // System.Threading.Tasks.Parallel.ForEach(indices, (i) => 
-          for(int i = 0; i< Polygons.Count ; i++)
+          for(int i = 0; i< Slivers.Count ; i++)
           {
-            var score = ComputeScoreByCurve(Polygons[i], curve, flipped);
-            initAreas[i] = new SmAreaPt(Polygons[i], score);
+            var score = ComputeScoreByCurve(Slivers[i]._poly, curve, flipped);
+            initAreas[i] = new SmAreaPt(Slivers[i]._poly, score);
             //});
           }
 
@@ -550,7 +543,7 @@ public List<Vector3> startPts;
           return dist;
         }
 
-        bool ContainedInCoreCrvs(Polygon polygon, List<Polygon> corePolys)
+        bool ContainedInCoreCrvs(SmSlivers sliver, List<Polygon> corePolys)
         {
           bool contained = false;
 
@@ -558,7 +551,7 @@ public List<Vector3> startPts;
           {
            for (int c = 0; c < corePolys.Count; c++)
            {
-            if(corePolys[c].Contains(polygon.Centroid()))
+            if(corePolys[c].Contains(sliver._poly.Centroid()))
             {
               return true;
             }
@@ -566,6 +559,29 @@ public List<Vector3> startPts;
           }
 
            return contained;
+        }
+
+        Line AlignWallPlease(Polygon sortingPoly, SmWall authorityWall)
+        {
+          Line freshLine = null;
+          try
+          {
+            var closestSeg = sortingPoly.Segments().OrderBy(s=>s.PointAt(0.5).DistanceTo(authorityWall._curve.PointAt(0.5))).ToList()[0];
+
+            Vector3 [] segPts = new Vector3[2];
+            segPts[0] = closestSeg.PointAt(0.0);
+            segPts[1] = closestSeg.PointAt(1.0);
+
+            var sortedPts = segPts.OrderBy(s=>s.DistanceTo(authorityWall._curve.PointAt(0.0))).ToArray();
+
+            freshLine = new Line(sortedPts[0], sortedPts[1]);
+          }
+          catch (Exception ex)
+          {
+            Console.WriteLine(ex);
+          }
+
+            return freshLine;
         }
 
         public void InitSubSpaces(double _seamFactor, IList<Polygon> corePolys)
@@ -648,14 +664,19 @@ public List<Vector3> startPts;
 
             for (int w = 0; w < _Walls.Length; w++)
             {
-              var closestSeg = _SubSpaces[w].Segments().OrderBy(s=>s.PointAt(0.5).DistanceTo(_Walls[w]._curve.PointAt(0.5))).ToList()[0];
-              tempWalls[w] = new SmWall(w, closestSeg);
+
+              var newWallSeg = AlignWallPlease(_SubSpaces[w], _Walls[w]);
+              //var closestSeg = _SubSpaces[w].Segments().OrderBy(s=>s.PointAt(0.5).DistanceTo(_Walls[w]._curve.PointAt(0.5))).ToList()[0];
+
+
+              tempWalls[w] = new SmWall(w, newWallSeg);
 
               if(_Walls[w]._flipped)
                 tempWalls[w]._flipped = true;
 
                 tempWalls[w]._direction = _Walls[w]._direction;
                 tempWalls[w]._normalDir = _Walls[w]._normalDir;
+
             }
 
            _Walls = tempWalls;
@@ -663,7 +684,7 @@ public List<Vector3> startPts;
 
 
 
-              _Slivers = new List<Polygon>[_SubSpaces.Length];
+              _Slivers = new List<SmSlivers>[_SubSpaces.Length];
             //creation of SLIVERS
             int counter = 0;
             for (int w = 0; w < _Walls.Length; w++)
@@ -672,7 +693,7 @@ public List<Vector3> startPts;
                 splitLines = ln.DivideByLength(moduleSliver, false);
                 //Console.WriteLine("numSplitLines: " + splitLines.Count.ToString());
 
-                var tempList = new List<Polygon>();
+                var tempList = new List<SmSlivers>();
 
                 for (int i = 0; i < splitLines.Count; i++)
                 {
@@ -685,7 +706,8 @@ public List<Vector3> startPts;
                     var p = Polygon.Rectangle(splitLines[i].Start, diagPoint);
 
                     if(_SubSpaces[counter].Contains(p.Centroid()))
-                      tempList.Add(p);
+                      tempList.Add(new SmSlivers(i, p));
+
                 }
                 _Slivers[counter] = tempList;
                 counter++;
@@ -696,7 +718,9 @@ public List<Vector3> startPts;
             {
               var PIndexes = new List<int>();
 
-              var sortedFaces = SortGeo(_Slivers[j], _Walls[j]._curve, _Walls[j]._flipped).ToList();
+              //ar sortedFaces = SortGeo(_Slivers[j], _Walls[j]._curve, _Walls[j]._flipped).ToList();
+
+              var sortedFaces = _Slivers[j].ToList();
 
                for (int s = 0; s < sortedFaces.Count; s++)
                {
@@ -708,7 +732,7 @@ public List<Vector3> startPts;
 
               var sfCount = sortedFaces.Count;
 
-              for (int s = 3; s >= 0; s--)
+              for (int s = 6; s >= 0; s--)
               {
                 var subIndex = sfCount - 1 - s;
                 var subModIndex = pIntOffset + subIndex;
@@ -717,7 +741,7 @@ public List<Vector3> startPts;
               }
 
 
-              semiSlivers.AddRange(sortedFaces);
+              semiSlivers.AddRange(sortedFaces.OrderBy(s=>s._stIndex).Select(s=>s._poly));
              indecesforPurgin.AddRange(PIndexes);
               pIntOffset += sfCount;
             }

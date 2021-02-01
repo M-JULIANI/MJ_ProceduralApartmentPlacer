@@ -28,7 +28,7 @@ namespace MJProceduralApartmentPlacer
           List<ModelCurve> sketches = new List<ModelCurve>();
            List<ModelCurve> coreSketch = new List<ModelCurve>();
            List<ModelCurve> subSpaceSketch = new List<ModelCurve>();
-           List<ModelCurve> sliverSketch = new List<ModelCurve>();
+           List<SmSlivers> sliverSketch = new List<SmSlivers>();
           List<Polygon> outROomSlivs = new List<Polygon>();
 
           List<SmSpace> placedSpaces = new List<SmSpace>();
@@ -83,9 +83,9 @@ namespace MJProceduralApartmentPlacer
                 for (int i = 0; i < engine._Slivers.Length; i++)
                 {
                     foreach (var s in engine._Slivers[i])
-                        sliverSketch.Add(new ModelCurve(s));
+                        sliverSketch.Add(s);
                 }
-            engine.semiSlivers.ToList().ForEach(s=>subSpaceSketch.Add(new ModelCurve(s)));
+            engine.semiSlivers.ToList().ForEach(s=>subSpaceSketch.Add(s));
             Console.WriteLine($"Main feedback: {feedbackString}");
 
             placedSpaces = engine._PlacedProgramSpaces.ToList();
@@ -121,17 +121,28 @@ namespace MJProceduralApartmentPlacer
 
             for(int i=0; i< placedSpaces.Count; i++)
             {
-            var representation = new Representation(new SolidOperation[] { new Extrude(placedSpaces[i].poly.Offset(-0.1)[0], 2.0, Vector3.ZAxis, false) });
+            var representation = new Representation(new SolidOperation[] { new Extrude(placedSpaces[i].poly, 2.0, Vector3.ZAxis, false) });
 
-              var room = new Room(placedSpaces[i].poly.Offset(-0.1)[0], Vector3.ZAxis, $"Unit {placedSpaces[i].roomNumber}", $"{placedSpaces[i].roomNumber}", $"Type {placedSpaces[i].type}", placedSpaces[i].sorter.ToString(), placedSpaces[i].designArea, 1.0, 0.0, placedSpaces[i].poly.Centroid().Z, 2.0, placedSpaces[i].area, new Transform(0,0, placedSpaces[i].poly.Centroid().Z), materials[placedSpaces[i].type], representation, false, Guid.NewGuid(), "");
+              var room = new Room(placedSpaces[i].poly, Vector3.ZAxis, $"Unit {placedSpaces[i].roomNumber}", $"{placedSpaces[i].roomNumber}", $"Type {placedSpaces[i].type}", placedSpaces[i].sorter.ToString(), placedSpaces[i].designArea, 1.0, 0.0, placedSpaces[i].poly.Centroid().Z, 2.0, placedSpaces[i].area, new Transform(0,0, placedSpaces[i].poly.Centroid().Z), materials[placedSpaces[i].type], representation, false, Guid.NewGuid(), "");
 
               output.Model.AddElement(room);
             }    
 
+            
+
+            // for(int i=0; i< sliverSketch.Count; i++)
+            // {
+            // var representation = new Representation(new SolidOperation[] { new Extrude(sliverSketch[i]._poly, 2.0, Vector3.ZAxis, false) });
+
+            //   var room = new Room(sliverSketch[i]._poly, Vector3.ZAxis, $"Unit {sliverSketch[i]._stIndex}", $"{sliverSketch[i]._stIndex}", $"Type {sliverSketch[i]._stIndex}", sliverSketch[i]._stIndex.ToString(), 10, 1.0, 0.0, 0, 2.0, 0, new Transform(0,0, 0), materials[0], representation, false, Guid.NewGuid(), "");
+
+            //   output.Model.AddElement(room);
+            // }    
+
             //output.Model.AddElements(sketches);
             output.Model.AddElements(coreSketch);
             //output.Model.AddElements(subSpaceSketch);
-           output.Model.AddElements(sliverSketch);
+           //output.Model.AddElements(sliverSketch);
 
             // Console.WriteLine("sliver count is: "+ engine._SubSpaces.Length.ToString());
            
