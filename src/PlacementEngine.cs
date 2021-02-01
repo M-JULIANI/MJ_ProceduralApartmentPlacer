@@ -39,7 +39,7 @@ using System.Threading.Tasks;
     public SmSlivers [] _smSubSpaces;
 
 //previously datatree<polygon>
-    public Dictionary<int, List<Polygon>> _PlacedProgramSlivers;
+    public Dictionary<int, List<SmSlivers>> _PlacedProgramSlivers;
     public List<SmSpace> _PlacedProgramSpaces;
     public Dictionary<int, SmSpace> _ProcessedProgram;
 
@@ -146,7 +146,7 @@ public List<Vector3> startPts;
 
             {
                 InitSubSpaces(_seamFactor, coreCrvs);
-                _PlacedProgramSlivers = new Dictionary<int, List<Polygon>>();
+                _PlacedProgramSlivers = new Dictionary<int, List<SmSlivers>>();
                 //smart slivers ordered by their origigal index
                 var stSubs = _smSubSpaces.OrderBy(s => s._shiftIndex).ToList();
 
@@ -170,9 +170,14 @@ public List<Vector3> startPts;
                       if(slivs != null && slivs.Count>0)
                       {
                         Console.WriteLine("placed program: " + slivs.Count.ToString());
+<<<<<<< HEAD
                         Polygon unionest;
                         try{
                         unionest = Polygon.UnionAll(slivs).ToList()[0];
+=======
+                        var all = slivs.Select(s => s._poly).ToList();
+                        var unionest = Polygon.UnionAll(all).ToList()[0];
+>>>>>>> parent of 2fd184e... Solved the 'non propagating room' problem
                         semiSlivers.Add(unionest);
                         var space = new SmSpace(_PlaceableSpaces[i].type, _PlaceableSpaces[i].roomNumber, true, _PlaceableSpaces[i].designArea, unionest);
                         space.sorter = i;
@@ -328,10 +333,15 @@ public List<Vector3> startPts;
 
       while(Placed == false)
       {
+<<<<<<< HEAD
 
         Console.WriteLine($"index: {spaceIndex}, areaAccum: {areaAccumulated}");
         if(Math.Abs(areaAccumulated - space.designArea) < threshold){
 
+=======
+        if(Math.Abs(areaAccumulated - space.designArea) < threshold){
+
+>>>>>>> parent of 2fd184e... Solved the 'non propagating room' problem
           if(indecesforPurgin.Contains(stSubs[_GlobalIndex]._stIndex))
           {
             bool placedExtras = false;
@@ -350,8 +360,8 @@ public List<Vector3> startPts;
                 // if dictionary index key exists
                 if(_PlacedProgramSlivers.TryGetValue(spaceIndex, out var listSpaces))
                 {
-                  listSpaces.Add(stSubs[twIndex]._poly);
-                  var newList = new List<Polygon>();
+                  listSpaces.Add(stSubs[twIndex]);
+                  var newList = new List<SmSlivers>();
                   newList.AddRange(listSpaces);
                   _PlacedProgramSlivers[spaceIndex] = newList;
               
@@ -359,9 +369,9 @@ public List<Vector3> startPts;
                 //if it doesnt...
                 else
                 {
-                  _PlacedProgramSlivers.Add(spaceIndex, new List<Polygon>() {stSubs[twIndex]._poly} );
+                  _PlacedProgramSlivers.Add(spaceIndex, new List<SmSlivers>() {stSubs[twIndex]} );
                 }
-                 areaAccumulated += Math.Abs(stSubs[twIndex]._poly.Area());
+                 areaAccumulated += stSubs[twIndex]._poly.Area();
                 _GlobalIndex++;
               }
             }
@@ -378,8 +388,8 @@ public List<Vector3> startPts;
                 // if dictionary index key exists
                 if (_PlacedProgramSlivers.TryGetValue(spaceIndex, out var _listSpaces))
                 {
-                    _listSpaces.Add(stSubs[twIndexy]._poly);
-                  var newList = new List<Polygon>();
+                    _listSpaces.Add(stSubs[twIndexy]);
+                  var newList = new List<SmSlivers>();
                   newList.AddRange(_listSpaces);
                   _PlacedProgramSlivers[spaceIndex] = newList;
 
@@ -387,9 +397,13 @@ public List<Vector3> startPts;
                 //if it doesnt...
                 else
                 {
+<<<<<<< HEAD
                     _PlacedProgramSlivers.Add(spaceIndex, new List<Polygon>() { stSubs[twIndexy]._poly});
+=======
+                    _PlacedProgramSlivers.Add(spaceIndex, new List<SmSlivers>() { stSubs[twIndexy] });
+>>>>>>> parent of 2fd184e... Solved the 'non propagating room' problem
                 }
-        areaAccumulated += Math.Abs(stSubs[twIndexy]._poly.Area());
+        areaAccumulated += stSubs[twIndexy]._poly.Area();
 
         _GlobalIndex++;
 
