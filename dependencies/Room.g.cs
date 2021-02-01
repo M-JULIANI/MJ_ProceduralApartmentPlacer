@@ -7,7 +7,6 @@ using Elements;
 using Elements.GeoJSON;
 using Elements.Geometry;
 using Elements.Geometry.Solids;
-using Elements.Properties;
 using Elements.Validators;
 using Elements.Serialization.JSON;
 using System;
@@ -23,38 +22,36 @@ namespace Elements
     /// <summary>Represents a single room.</summary>
     [Newtonsoft.Json.JsonConverter(typeof(Elements.Serialization.JSON.JsonInheritanceConverter), "discriminator")]
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.1.21.0 (Newtonsoft.Json v12.0.0.0)")]
-    [UserElement]
-	public partial class Room : GeometricElement
+    public partial class Room : GeometricElement
     {
         [Newtonsoft.Json.JsonConstructor]
         public Room(Polygon @perimeter, Vector3 @direction, string @suiteName, string @suiteNumber, string @department, string @number, double @designArea, double @designRatio, double @rotation, double @elevation, double @height, double @area, Transform @transform, Material @material, Representation @representation, bool @isElementDefinition, System.Guid @id, string @name)
             : base(transform, material, representation, isElementDefinition, id, name)
         {
-            var validator = Validator.Instance.GetFirstValidatorForType<Room>
-            ();
+            var validator = Validator.Instance.GetFirstValidatorForType<Room>();
             if(validator != null)
             {
                 validator.PreConstruct(new object[]{ @perimeter, @direction, @suiteName, @suiteNumber, @department, @number, @designArea, @designRatio, @rotation, @elevation, @height, @area, @transform, @material, @representation, @isElementDefinition, @id, @name});
             }
         
-                this.Perimeter = @perimeter;
-                this.Direction = @direction;
-                this.SuiteName = @suiteName;
-                this.SuiteNumber = @suiteNumber;
-                this.Department = @department;
-                this.Number = @number;
-                this.DesignArea = @designArea;
-                this.DesignRatio = @designRatio;
-                this.Rotation = @rotation;
-                this.Elevation = @elevation;
-                this.Height = @height;
-                this.Area = @area;
+            this.Perimeter = @perimeter;
+            this.Direction = @direction;
+            this.SuiteName = @suiteName;
+            this.SuiteNumber = @suiteNumber;
+            this.Department = @department;
+            this.Number = @number;
+            this.DesignArea = @designArea;
+            this.DesignRatio = @designRatio;
+            this.Rotation = @rotation;
+            this.Elevation = @elevation;
+            this.Height = @height;
+            this.Area = @area;
             
             if(validator != null)
             {
-            validator.PostConstruct(this);
+                validator.PostConstruct(this);
             }
-            }
+        }
     
         /// <summary>The id of the polygon to extrude.</summary>
         [Newtonsoft.Json.JsonProperty("Perimeter", Required = Newtonsoft.Json.Required.AllowNull)]

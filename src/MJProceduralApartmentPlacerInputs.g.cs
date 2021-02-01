@@ -6,7 +6,6 @@ using Elements;
 using Elements.GeoJSON;
 using Elements.Geometry;
 using Elements.Geometry.Solids;
-using Elements.Properties;
 using Elements.Validators;
 using Elements.Serialization.JSON;
 using Hypar.Functions;
@@ -71,15 +70,6 @@ namespace MJProceduralApartmentPlacer
         [Newtonsoft.Json.JsonProperty("CorridorWidth", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Range(3D, 3.5D)]
         public double CorridorWidth { get; set; } = 2.25D;
-    
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties = new System.Collections.Generic.Dictionary<string, object>();
-    
-        [Newtonsoft.Json.JsonExtensionData]
-        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
-        {
-            get { return _additionalProperties; }
-            set { _additionalProperties = value; }
-        }
     
     
     }

@@ -85,19 +85,6 @@ public List<Vector3> startPts;
       var boundary = firstLevel._boundaries[0].mainPoly;
      // var orientation = boundary.ClosedCurveOrientation(Vector3d.ZAxis);
 
-   
-
-      //boundary.
-
-      // if(orientation != CurveOrientation.Clockwise)
-      //   boundary.Reverse();
-
-      spaces = SmSpace.Jitter(spaces, 1.0).ToList();
-
-            // for (int i = 0; i < spaces.Count; i++)
-            // {
-            //     Console.WriteLine($"Type: {spaces[i].type}- Area: {spaces[i].designArea}");
-            // }
 
        _areas = spaces.OrderBy(s=>s.sorter).Select(s=>s.designArea).ToList();
        _spaces = spaces.OrderBy(s=>s.sorter).Select(s=>s.roomNumber.ToString()).ToList();
@@ -326,7 +313,7 @@ public List<Vector3> startPts;
 
       while(Placed == false)
       {
-         Console.WriteLine($"design: {space.designArea}  , accum: {areaAccumulated}");
+      //   Console.WriteLine($"design: {space.designArea}  , accum: {areaAccumulated}");
 
         if(Math.Abs(areaAccumulated - space.designArea) < threshold)
         {
@@ -710,7 +697,7 @@ public List<Vector3> startPts;
 
               var sfCount = sortedFaces.Count;
 
-              for (int s = 6; s >= 0; s--)
+              for (int s = 3; s >= 0; s--)
               {
                 var subIndex = sfCount - 1 - s;
                 var subModIndex = pIntOffset + subIndex;

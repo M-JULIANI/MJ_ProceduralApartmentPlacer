@@ -61,13 +61,14 @@ namespace MJProceduralApartmentPlacer
           var listPlaced = new List<SmSpace>();
           try
           {
-            engine = new PlacementEngine(allUnitsPreplaced.OrderBy(u=>u.roomNumber).ToList(), (input.CellSize - input.CorridorWidth) * 0.5,_levels, input.CorePolygons, 0.5);
+            allUnitsPreplaced = SmSpace.Jitter(allUnitsPreplaced, 0.5).ToList();
+
+            engine = new PlacementEngine(allUnitsPreplaced, (input.CellSize - input.CorridorWidth) * 0.5,_levels, input.CorePolygons, 0.5);
 
             var wallCrvs = engine._Walls.Select(s=>new ModelCurve(s._curve)).ToList();
 
               var coreCrvs = engine.coreLinesViz.Select(s=>new ModelCurve(s._curve)).ToList();
 
-            //Console.WriteLine("WALL COUNT IS: " + wallCrvs.Count.ToString());
             sketches.AddRange(wallCrvs);
             coreSketch.AddRange(coreCrvs);
             
@@ -114,7 +115,7 @@ namespace MJProceduralApartmentPlacer
               for(int i=0; i< input.UnitMix.Nodes.Count; i++)
           {
             var col = input.UnitMix.Nodes[i].Color;
-               col.Alpha = 0.75;
+               col.Alpha = 0.85;
               materials[i] = new Material(input.UnitMix.Nodes[i].SpaceType, col, 0.0f, 0.0f);
           }
 
@@ -126,33 +127,11 @@ namespace MJProceduralApartmentPlacer
 
               output.Model.AddElement(room);
             }    
-            // var tempMat = new Material("envelope", new Color(0.27, 0.73, 0.73, 0.6), 0.0f, 0.0f);
-
-            //   int who = 0;
-            // foreach(var pl in outROomSlivs)
-            // {
-            //    var representation = new Representation(new SolidOperation[] { new Extrude(pl, 2.0, Vector3.ZAxis, false) });
-               
-            //   var room = new Room(pl, Vector3.ZAxis, $"Unit {who}", who.ToString(), "one", who.ToString(), pl.Area(), 0.0, 0.0, pl.Centroid().Z, 2.0, pl.Area(), new Transform(0,0, 2.0), tempMat, representation, false, Guid.NewGuid(), "");
-
-            //   output.Model.AddElement(room);
-            //   who++;
-            // }
-            //  var tempMat = new Material("envelope", new Color(0.27, 0.73, 0.73, 0.6), 0.0f, 0.0f);
-
-            // foreach(var pl in listPlaced)
-            // {
-            //    var representation = new Representation(new SolidOperation[] { new Extrude(pl.poly, pl.roomHeight, Vector3.ZAxis, false) });
-               
-            //   var room = new Room(pl.poly, Vector3.ZAxis, $"Unit {pl.roomNumber}", pl.roomNumber.ToString(), pl.type.ToString(), pl.roomNumber.ToString(), pl.area, 0.0, 0.0, pl.poly.Centroid().Z, pl.roomHeight, pl.poly.Area(), new Transform(0,0, pl.roomHeight), tempMat, representation, false, Guid.NewGuid(), "");
-
-            //   output.Model.AddElement(room);
-            // }
 
             //output.Model.AddElements(sketches);
             output.Model.AddElements(coreSketch);
             //output.Model.AddElements(subSpaceSketch);
-            output.Model.AddElements(sliverSketch);
+           //output.Model.AddElements(sliverSketch);
 
             // Console.WriteLine("sliver count is: "+ engine._SubSpaces.Length.ToString());
            
