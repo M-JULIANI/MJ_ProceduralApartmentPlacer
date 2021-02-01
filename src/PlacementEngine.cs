@@ -39,7 +39,7 @@ using System.Threading.Tasks;
     public SmSlivers [] _smSubSpaces;
 
 //previously datatree<polygon>
-    public Dictionary<int, List<SmSlivers>> _PlacedProgramSlivers;
+    public Dictionary<int, List<Polygon>> _PlacedProgramSlivers;
     public List<SmSpace> _PlacedProgramSpaces;
     public Dictionary<int, SmSpace> _ProcessedProgram;
 
@@ -159,7 +159,7 @@ public List<Vector3> startPts;
 
             {
                 InitSubSpaces(_seamFactor, coreCrvs);
-                _PlacedProgramSlivers = new Dictionary<int, List<SmSlivers>>();
+                _PlacedProgramSlivers = new Dictionary<int, List<Polygon>>();
                 //smart slivers ordered by their origigal index
                 var stSubs = _smSubSpaces.OrderBy(s => s._shiftIndex).ToList();
 
@@ -180,7 +180,7 @@ public List<Vector3> startPts;
                     if (_PlacedProgramSlivers.TryGetValue(i, out var slivs))
                     {
                         Console.WriteLine("placed program: " + slivs.Count.ToString());
-                        var all = slivs.Select(s => s._poly).ToList();
+                        var all = slivs.ToList();
                         var unionest = Polygon.UnionAll(all).ToList()[0];
                         semiSlivers.Add(unionest);
                         var space = new SmSpace(_PlaceableSpaces[i].type, _PlaceableSpaces[i].roomNumber, true, _PlaceableSpaces[i].designArea, unionest);
@@ -320,14 +320,17 @@ public List<Vector3> startPts;
       var areaAccumulated = 0.0;
       report = "Placeholder!";
 
-      double threshold = _leaseOffset *1.5;
+      double threshold = _leaseOffset *2.0;
       //if(!inRevit)
       threshold *= (_worldScale * _worldScale);
 
       while(Placed == false)
       {
-        if(Math.Abs(areaAccumulated - space.designArea) < threshold){
+         Console.WriteLine($"design: {space.designArea}  , accum: {areaAccumulated}");
 
+        if(Math.Abs(areaAccumulated - space.designArea) < threshold)
+        {
+         
           if(indecesforPurgin.Contains(stSubs[_GlobalIndex]._stIndex))
           {
             bool placedExtras = false;
@@ -344,10 +347,11 @@ public List<Vector3> startPts;
                 int twIndex = stSubs[_GlobalIndex]._shiftIndex;
 
                 // if dictionary index key exists
-                if(_PlacedProgramSlivers.TryGetValue(spaceIndex, out var listSpaces))
+                List<Polygon> listSpaces;
+                if(_PlacedProgramSlivers.TryGetValue(spaceIndex, out listSpaces))
                 {
-                  listSpaces.Add(stSubs[twIndex]);
-                  var newList = new List<SmSlivers>();
+                  listSpaces.Add(stSubs[twIndex]._poly);
+                  var newList = new List<Polygon>();
                   newList.AddRange(listSpaces);
                   _PlacedProgramSlivers[spaceIndex] = newList;
               
@@ -355,9 +359,9 @@ public List<Vector3> startPts;
                 //if it doesnt...
                 else
                 {
-                  _PlacedProgramSlivers.Add(spaceIndex, new List<SmSlivers>() {stSubs[twIndex]} );
+                  _PlacedProgramSlivers.Add(spaceIndex, new List<Polygon>() {stSubs[twIndex]._poly} );
                 }
-                 areaAccumulated += stSubs[twIndex]._poly.Area();
+                 areaAccumulated += Math.Abs(stSubs[twIndex]._poly.Area());
                 _GlobalIndex++;
               }
             }
@@ -372,10 +376,11 @@ public List<Vector3> startPts;
 
         int twIndexy = stSubs[_GlobalIndex]._shiftIndex;
                 // if dictionary index key exists
-                if (_PlacedProgramSlivers.TryGetValue(spaceIndex, out var _listSpaces))
+                List<Polygon> _listSpaces;
+                if (_PlacedProgramSlivers.TryGetValue(spaceIndex, out _listSpaces))
                 {
-                    _listSpaces.Add(stSubs[twIndexy]);
-                  var newList = new List<SmSlivers>();
+                    _listSpaces.Add(stSubs[twIndexy]._poly);
+                  var newList = new List<Polygon>();
                   newList.AddRange(_listSpaces);
                   _PlacedProgramSlivers[spaceIndex] = newList;
 
@@ -383,9 +388,9 @@ public List<Vector3> startPts;
                 //if it doesnt...
                 else
                 {
-                    _PlacedProgramSlivers.Add(spaceIndex, new List<SmSlivers>() { stSubs[twIndexy] });
+                    _PlacedProgramSlivers.Add(spaceIndex, new List<Polygon>() { stSubs[twIndexy]._poly });
                 }
-        areaAccumulated += stSubs[twIndexy]._poly.Area();
+        areaAccumulated += Math.Abs(stSubs[twIndexy]._poly.Area());
 
         _GlobalIndex++;
 
