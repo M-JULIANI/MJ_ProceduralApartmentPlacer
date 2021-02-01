@@ -61,7 +61,7 @@ namespace MJProceduralApartmentPlacer
           var listPlaced = new List<SmSpace>();
           try
           {
-            allUnitsPreplaced = SmSpace.Jitter(allUnitsPreplaced, 0.5).ToList();
+            //allUnitsPreplaced = SmSpace.Jitter(allUnitsPreplaced, 0.5).ToList();
 
             engine = new PlacementEngine(allUnitsPreplaced, (input.CellSize - input.CorridorWidth) * 0.5,_levels, input.CorePolygons, 0.5);
 
@@ -131,7 +131,7 @@ namespace MJProceduralApartmentPlacer
             //output.Model.AddElements(sketches);
             output.Model.AddElements(coreSketch);
             //output.Model.AddElements(subSpaceSketch);
-           //output.Model.AddElements(sliverSketch);
+           output.Model.AddElements(sliverSketch);
 
             // Console.WriteLine("sliver count is: "+ engine._SubSpaces.Length.ToString());
            

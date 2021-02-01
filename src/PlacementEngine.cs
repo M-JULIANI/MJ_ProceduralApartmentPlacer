@@ -84,12 +84,12 @@ public List<Vector3> startPts;
       var firstLevel = inLvls.OrderBy(l => l._elevation).ToList()[0];
       var boundary = firstLevel._boundaries[0].mainPoly;
      // var orientation = boundary.ClosedCurveOrientation(Vector3d.ZAxis);
+      var ssspaces = SmSpace.Jitter(spaces, 0.75).ToList();
 
+       _areas = ssspaces.OrderBy(s=>s.sorter).Select(s=>s.designArea).ToList();
+       _spaces = ssspaces.OrderBy(s=>s.sorter).Select(s=>s.roomNumber.ToString()).ToList();
 
-       _areas = spaces.OrderBy(s=>s.sorter).Select(s=>s.designArea).ToList();
-       _spaces = spaces.OrderBy(s=>s.sorter).Select(s=>s.roomNumber.ToString()).ToList();
-
-       _PlaceableSpaces = spaces.OrderBy(s=>s.sorter).ToList();
+       _PlaceableSpaces = ssspaces;
 
       Polyline tempPoly= boundary.ToPolyline();
 
@@ -166,13 +166,28 @@ public List<Vector3> startPts;
                 {
                     if (_PlacedProgramSlivers.TryGetValue(i, out var slivs))
                     {
+
+                      if(slivs != null && slivs.Count>0)
+                      {
                         Console.WriteLine("placed program: " + slivs.Count.ToString());
-                        var all = slivs.ToList();
-                        var unionest = Polygon.UnionAll(all).ToList()[0];
+                        Polygon unionest;
+                        try{
+                        unionest = Polygon.UnionAll(slivs).ToList()[0];
                         semiSlivers.Add(unionest);
                         var space = new SmSpace(_PlaceableSpaces[i].type, _PlaceableSpaces[i].roomNumber, true, _PlaceableSpaces[i].designArea, unionest);
                         space.sorter = i;
                         _PlacedProgramSpaces.Add(space);
+                        }
+                        catch(Exception ex)
+                        {
+                          Console.WriteLine(ex);
+                        }
+                        
+                      }
+                      else
+                      {
+                        Console.WriteLine("slivs: " + slivs.ToString());
+                      }
                     }
 
 
@@ -307,17 +322,16 @@ public List<Vector3> startPts;
       var areaAccumulated = 0.0;
       report = "Placeholder!";
 
-      double threshold = _leaseOffset *2.0;
+      double threshold = _leaseOffset *1.5;
       //if(!inRevit)
       threshold *= (_worldScale * _worldScale);
 
       while(Placed == false)
       {
-      //   Console.WriteLine($"design: {space.designArea}  , accum: {areaAccumulated}");
 
-        if(Math.Abs(areaAccumulated - space.designArea) < threshold)
-        {
-         
+        Console.WriteLine($"index: {spaceIndex}, areaAccum: {areaAccumulated}");
+        if(Math.Abs(areaAccumulated - space.designArea) < threshold){
+
           if(indecesforPurgin.Contains(stSubs[_GlobalIndex]._stIndex))
           {
             bool placedExtras = false;
@@ -334,8 +348,7 @@ public List<Vector3> startPts;
                 int twIndex = stSubs[_GlobalIndex]._shiftIndex;
 
                 // if dictionary index key exists
-                List<Polygon> listSpaces;
-                if(_PlacedProgramSlivers.TryGetValue(spaceIndex, out listSpaces))
+                if(_PlacedProgramSlivers.TryGetValue(spaceIndex, out var listSpaces))
                 {
                   listSpaces.Add(stSubs[twIndex]._poly);
                   var newList = new List<Polygon>();
@@ -363,8 +376,7 @@ public List<Vector3> startPts;
 
         int twIndexy = stSubs[_GlobalIndex]._shiftIndex;
                 // if dictionary index key exists
-                List<Polygon> _listSpaces;
-                if (_PlacedProgramSlivers.TryGetValue(spaceIndex, out _listSpaces))
+                if (_PlacedProgramSlivers.TryGetValue(spaceIndex, out var _listSpaces))
                 {
                     _listSpaces.Add(stSubs[twIndexy]._poly);
                   var newList = new List<Polygon>();
@@ -375,7 +387,7 @@ public List<Vector3> startPts;
                 //if it doesnt...
                 else
                 {
-                    _PlacedProgramSlivers.Add(spaceIndex, new List<Polygon>() { stSubs[twIndexy]._poly });
+                    _PlacedProgramSlivers.Add(spaceIndex, new List<Polygon>() { stSubs[twIndexy]._poly});
                 }
         areaAccumulated += Math.Abs(stSubs[twIndexy]._poly.Area());
 
@@ -392,30 +404,17 @@ public List<Vector3> startPts;
       double areaRequested = 0.0;
       double localArea = 0.0;
       foreach(var a in _areas){
-        //if(inRevit)
-        ///  localArea = a * 0.000001;
-        // else
         localArea = a;
         areaRequested += localArea;
 
       }
 
-      if(_MainFace[0].Area() - _MainFace[1].Area() <= areaRequested){
-        areaMissing = areaRequested - _MainFace[0].Area();
+      if(Math.Abs(_MainFace[0].Area()) - Math.Abs(_MainFace[1].Area()) <= areaRequested){
+        areaMissing = areaRequested - Math.Abs(_MainFace[0].Area());
         suffArea = false;
       }
       return suffArea;
     }
-
-    // public void InitSpaces()
-    // {
-    //   _PlaceableSpaces = new List<SmSpace>();
-
-    //   for (int i = 0; i < _areas.Count; i++)
-    //     _PlaceableSpaces.Add(new SmSpace(_spaces[i], _areas[i]));
-    //     new SmSpace()
-    // }
-
 
     bool IntersectsGroupOfLines(Ray ray, Line [] linesToIntersect, out Vector3 firstVec)
     {
@@ -450,9 +449,6 @@ public List<Vector3> startPts;
 
        var _WallA = new SmWall[initCoreLines.Length];
        startPts = new List<Vector3>();
-
-       //int[] indices = Enumerable.Range(0, innerMostCorePolygon.Segments().Length).ToArray();
-      // System.Threading.Tasks.Parallel.ForEach(indices, (i) => 
        
         for ( int i = 0; i< innerMostCorePolygon.Segments().Length; i++)
        {
@@ -540,14 +536,15 @@ public List<Vector3> startPts;
           return dist;
         }
 
-        bool ContainedInCoreCrvs(Polygon polygon)
+        bool ContainedInCoreCrvs(Polygon polygon, List<Polygon> corePolys)
         {
           bool contained = false;
 
-          if(coreCrvs!= null && coreCrvs.Count>0){
-           for (int c = 0; c < coreCrvs.Count; c++)
+          if(corePolys!= null && corePolys.Count>0)
+          {
+           for (int c = 0; c < corePolys.Count; c++)
            {
-            if(coreCrvs[c].Contains(polygon.Centroid()))
+            if(corePolys[c].Contains(polygon.Centroid()))
             {
               return true;
             }
@@ -689,7 +686,7 @@ public List<Vector3> startPts;
 
                for (int s = 0; s < sortedFaces.Count; s++)
                {
-                 if(ContainedInCoreCrvs(sortedFaces[s])){
+                 if(ContainedInCoreCrvs(sortedFaces[s], coreCrvs)){
                     sortedFaces.RemoveAt(s);
                     s--;
                 }
@@ -747,7 +744,7 @@ public List<Vector3> startPts;
         {
         var branchPolygons = branchSpaces.Select(s=>s._poly).ToList();;
         var mergedPolygon = Polygon.UnionAll(branchPolygons)[0];
-        initSpaces[i] = new SmSpace(int.Parse(spaceNames[i]), mergedPolygon.Area());
+        initSpaces[i] = new SmSpace(int.Parse(spaceNames[i]), Math.Abs(mergedPolygon.Area()));
         initSpaces[i].poly = mergedPolygon;
 
         _ProcessedProgram.Add(i, initSpaces[i]);

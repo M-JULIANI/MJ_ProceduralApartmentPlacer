@@ -38,7 +38,7 @@ namespace MJProceduralApartmentPlacer
           this.placed = placed;
           this.designArea = designArea;
           this.poly = poly;
-          this.area = this.poly.Area();
+          this.area = Math.Abs(this.poly.Area());
         }
         public SmSpace(int type, int roomNumber, bool placed, double designArea)
         {
@@ -58,7 +58,7 @@ namespace MJProceduralApartmentPlacer
 
          public static SmSpace[] Jitter(List<SmSpace> initList, double jitterFactor)
         {
-            int[] array = new int[initList.Count];
+            double[] array = new double[initList.Count];
 
             double maxDistance = jitterFactor * array.Length;
             Random r = new Random(42);
@@ -68,7 +68,7 @@ namespace MJProceduralApartmentPlacer
                 double min = Math.Max(i - maxDistance, 0);
                 double max = Math.Min(i + maxDistance, array.Length);
 
-                var item = r.Next((int)min, (int)max);
+                var item = r.NextDouble();
                 array[i] = item;
             }
             var newSpaces = new SmSpace[array.Length];
