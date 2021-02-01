@@ -141,7 +141,7 @@ namespace MJProceduralApartmentPlacer
 
             //output.Model.AddElements(sketches);
             output.Model.AddElements(coreSketch);
-            //output.Model.AddElements(subSpaceSketch);
+           /// output.Model.AddElements(subSpaceSketch);
            //output.Model.AddElements(sliverSketch);
 
             // Console.WriteLine("sliver count is: "+ engine._SubSpaces.Length.ToString());

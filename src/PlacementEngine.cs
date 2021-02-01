@@ -39,7 +39,7 @@ using System.Threading.Tasks;
     public SmSlivers [] _smSubSpaces;
 
 //previously datatree<polygon>
-    public Dictionary<int, List<Polygon>> _PlacedProgramSlivers;
+    public Dictionary<int, List<SmSlivers>> _PlacedProgramSlivers;
     public List<SmSpace> _PlacedProgramSpaces;
     public Dictionary<int, SmSpace> _ProcessedProgram;
 
@@ -131,6 +131,8 @@ public List<Vector3> startPts;
       return insetOffset;
     }
 
+
+
         public void RunFirstFloor(double _seamFactor, out string message)
         {
             message = "None";
@@ -145,7 +147,7 @@ public List<Vector3> startPts;
 
             {
                 InitSubSpaces(_seamFactor, coreCrvs);
-                _PlacedProgramSlivers = new Dictionary<int, List<Polygon>>();
+                _PlacedProgramSlivers = new Dictionary<int, List<SmSlivers>>();
                 //smart slivers ordered by their origigal index
                 var stSubs = _smSubSpaces.OrderBy(s => s._shiftIndex).ToList();
                 
@@ -167,28 +169,28 @@ public List<Vector3> startPts;
                     if (_PlacedProgramSlivers.TryGetValue(i, out var slivs))
                     {
 
-                     // if(slivs != null && slivs.Count>0)
+                      //if(slivs != null && slivs.Count>0)
                       //{
                         Console.WriteLine("placed program: " + slivs.Count.ToString());
                         //Polygon unionest;
-                        try{
-                        //var rawUnion = Polygon.UnionAll(slivs, 0.000000001);
-                       // if(rawUnion!= null)
-                       // {
-                        //semiSlivers.Add(rawUnion[0]);
+                       // try{
+                       // var rawUnion = Polygon.UnionAll(slivs.OrderBy(s=>s._shiftIndex).Select(s=>s._poly).ToList());
+                      //  if(rawUnion!= null)
+                      //  {
+                      //  semiSlivers.AddRange(rawUnion);
                         foreach(var s in slivs)
                         {
-                          var space = new SmSpace(_PlaceableSpaces[i].type, _PlaceableSpaces[i].roomNumber, true, _PlaceableSpaces[i].designArea, s);
+                          var space = new SmSpace(_PlaceableSpaces[i].type, _PlaceableSpaces[i].roomNumber, true, _PlaceableSpaces[i].designArea, s._poly);
                         space.sorter = i;
                         _PlacedProgramSpaces.Add(space);
                         }
                  
                        // }
-                        }
-                        catch(Exception ex)
-                        {
-                          Console.WriteLine(ex + slivs.ToString() + "Count: " + slivs.Count);
-                        }
+                       // }
+                        // catch(Exception ex)
+                        // {
+                        //   Console.WriteLine(ex + slivs.ToString() + "Count: " + slivs.Count);
+                        // }
                         
                      // }
                      // else
@@ -329,7 +331,7 @@ public List<Vector3> startPts;
       var areaAccumulated = 0.0;
       report = "Placeholder!";
 
-      double threshold = _leaseOffset *1.5;
+      double threshold = _leaseOffset *0.5;
       //if(!inRevit)
       threshold *= (_worldScale * _worldScale);
 
@@ -357,7 +359,7 @@ public List<Vector3> startPts;
                 // if dictionary index key exists
                 if(_PlacedProgramSlivers.TryGetValue(spaceIndex, out var listSpaces))
                 {
-                  listSpaces.Add(stSubs[twIndex]._poly);
+                  listSpaces.Add(stSubs[twIndex]);
                   // var newList = new List<Polygon>();
                   // newList.AddRange(listSpaces);
                   // _PlacedProgramSlivers[spaceIndex] = newList;
@@ -366,7 +368,7 @@ public List<Vector3> startPts;
                 //if it doesnt...
                 else
                 {
-                  _PlacedProgramSlivers.Add(spaceIndex, new List<Polygon>() {stSubs[twIndex]._poly} );
+                  _PlacedProgramSlivers.Add(spaceIndex, new List<SmSlivers>() {stSubs[twIndex]} );
                 }
                  areaAccumulated += Math.Abs(stSubs[twIndex]._poly.Area());
                 _GlobalIndex++;
@@ -385,7 +387,7 @@ public List<Vector3> startPts;
                 // if dictionary index key exists
                 if (_PlacedProgramSlivers.TryGetValue(spaceIndex, out var _listSpaces))
                 {
-                    _listSpaces.Add(stSubs[twIndexy]._poly);
+                    _listSpaces.Add(stSubs[twIndexy]);
                   // var newList = new List<Polygon>();
                   // newList.AddRange(_listSpaces);
                   // _PlacedProgramSlivers[spaceIndex] = newList;
@@ -394,7 +396,7 @@ public List<Vector3> startPts;
                 //if it doesnt...
                 else
                 {
-                    _PlacedProgramSlivers.Add(spaceIndex, new List<Polygon>() { stSubs[twIndexy]._poly});
+                    _PlacedProgramSlivers.Add(spaceIndex, new List<SmSlivers>() { stSubs[twIndexy]});
                 }
         areaAccumulated += Math.Abs(stSubs[twIndexy]._poly.Area());
 
