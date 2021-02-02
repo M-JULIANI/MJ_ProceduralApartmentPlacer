@@ -166,33 +166,41 @@ public List<Vector3> startPts;
                 semiSlivers = new List<Polygon>();
                 for (int i = 0; i < _PlacedProgramSlivers.Keys.Count(); i++)
                 {
-                    if (_PlacedProgramSlivers.TryGetValue(i, out var slivs))
+                  List<SmSlivers> slivs;
+                    if (_PlacedProgramSlivers.TryGetValue(i, out slivs))
                     {
 
-                      //if(slivs != null && slivs.Count>0)
-                      //{
+                      if(slivs != null && slivs.Count>0)
+                      {
                         Console.WriteLine("placed program: " + slivs.Count.ToString());
                         //Polygon unionest;
-                       // try{
-                       // var rawUnion = Polygon.UnionAll(slivs.OrderBy(s=>s._shiftIndex).Select(s=>s._poly).ToList());
-                      //  if(rawUnion!= null)
-                      //  {
-                      //  semiSlivers.AddRange(rawUnion);
-                        foreach(var s in slivs)
+                        try
                         {
-                          var space = new SmSpace(_PlaceableSpaces[i].type, _PlaceableSpaces[i].roomNumber, true, _PlaceableSpaces[i].designArea, s._poly);
+                          // if(i==1)
+                          // {
+                          // System.IO.File.WriteAllText("D:/Hypar/testUnionAll_2.json", Newtonsoft.Json.JsonConvert.SerializeObject(slivs.OrderBy(s=>s._shiftIndex).Select(s=>s._poly).ToList()));
+                          var polys = slivs.Select(s=>s._poly).ToList();
+                          // }
+                        var rawUnion = Polygon.UnionAll(polys)[0];
+
+                        if(rawUnion!= null)
+                        {
+                        semiSlivers.Add(rawUnion);
+                      //  foreach(var s in slivs)
+                        {
+                          var space = new SmSpace(_PlaceableSpaces[i].type, _PlaceableSpaces[i].roomNumber, true, _PlaceableSpaces[i].designArea, rawUnion);
                         space.sorter = i;
                         _PlacedProgramSpaces.Add(space);
                         }
                  
-                       // }
-                       // }
-                        // catch(Exception ex)
-                        // {
-                        //   Console.WriteLine(ex + slivs.ToString() + "Count: " + slivs.Count);
-                        // }
+                        }
+                        }
+                         catch(Exception ex)
+                         {
+                           Console.WriteLine(ex + slivs.ToString() + "Count: " + slivs.Count);
+                         }
                         
-                     // }
+                      }
                      // else
                       //{
                      //   Console.WriteLine("slivs: " + slivs.ToString());
