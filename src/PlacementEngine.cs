@@ -179,6 +179,7 @@ public List<Vector3> startPts;
                           // if(i==1)
                           // {
                           // System.IO.File.WriteAllText("D:/Hypar/testUnionAll_2.json", Newtonsoft.Json.JsonConvert.SerializeObject(slivs.OrderBy(s=>s._shiftIndex).Select(s=>s._poly).ToList()));
+<<<<<<< HEAD
                         var polys = slivs.Select(s=>s._poly).ToList();
                          var profiles = polys.Select(s=>new Profile(s));
                        // var profileResult = Profile.UnionAll(profiles);
@@ -190,13 +191,23 @@ public List<Vector3> startPts;
                        // {
                         //semiSlivers.Add(rawUnion);
                         foreach(var s in slivs)
+=======
+                          var polys = slivs.Select(s=>s._poly).ToList();
+                          // }
+                        var rawUnion = Polygon.UnionAll(polys)[0];
+
+                        if(rawUnion!= null)
+>>>>>>> parent of db90569... Profile.Union testing
                         {
-                          var space = new SmSpace(_PlaceableSpaces[i].type, _PlaceableSpaces[i].roomNumber, true, _PlaceableSpaces[i].designArea, s._poly);
+                        semiSlivers.Add(rawUnion);
+                      //  foreach(var s in slivs)
+                        {
+                          var space = new SmSpace(_PlaceableSpaces[i].type, _PlaceableSpaces[i].roomNumber, true, _PlaceableSpaces[i].designArea, rawUnion);
                         space.sorter = i;
                         _PlacedProgramSpaces.Add(space);
                         }
                  
-                       // }
+                        }
                         }
                          catch(Exception ex)
                          {

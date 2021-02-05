@@ -120,7 +120,7 @@ namespace MJProceduralApartmentPlacer
             {
             var representation = new Representation(new SolidOperation[] { new Extrude(placedSpaces[i].poly, 2.0, Vector3.ZAxis, false) });
 
-              var room = new Room(placedSpaces[i].poly, Vector3.ZAxis, $"Unit {placedSpaces[i].roomNumber}", $"{placedSpaces[i].roomNumber}", $"Type {placedSpaces[i].type}", placedSpaces[i].sorter.ToString(), placedSpaces[i].designArea, 1.0, 0.0, "none", placedSpaces[i].poly.Centroid().Z, 2.0, placedSpaces[i].area, new Transform(0,0, placedSpaces[i].poly.Centroid().Z), materials[placedSpaces[i].type], representation, false, Guid.NewGuid(), "");
+              var room = new Room(placedSpaces[i].poly, Vector3.ZAxis, $"Unit {placedSpaces[i].roomNumber}", $"{placedSpaces[i].roomNumber}", $"Type {placedSpaces[i].type}", placedSpaces[i].sorter.ToString(), placedSpaces[i].designArea, 1.0, 0.0, placedSpaces[i].poly.Centroid().Z, 2.0, placedSpaces[i].area, new Transform(0,0, placedSpaces[i].poly.Centroid().Z), materials[placedSpaces[i].type], representation, false, Guid.NewGuid(), "");
 
               output.Model.AddElement(room);
             }    

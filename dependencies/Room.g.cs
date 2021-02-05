@@ -25,13 +25,13 @@ namespace Elements
     public partial class Room : GeometricElement
     {
         [Newtonsoft.Json.JsonConstructor]
-        public Room(Polygon @perimeter, Vector3 @direction, string @suiteName, string @suiteNumber, string @department, string @number, double @designArea, double @designRatio, double @rotation, string @levelName, double @elevation, double @height, double @area, Transform @transform, Material @material, Representation @representation, bool @isElementDefinition, System.Guid @id, string @name)
+        public Room(Polygon @perimeter, Vector3 @direction, string @suiteName, string @suiteNumber, string @department, string @number, double @designArea, double @designRatio, double @rotation, double @elevation, double @height, double @area, Transform @transform, Material @material, Representation @representation, bool @isElementDefinition, System.Guid @id, string @name)
             : base(transform, material, representation, isElementDefinition, id, name)
         {
             var validator = Validator.Instance.GetFirstValidatorForType<Room>();
             if(validator != null)
             {
-                validator.PreConstruct(new object[]{ @perimeter, @direction, @suiteName, @suiteNumber, @department, @number, @designArea, @designRatio, @rotation, @levelName, @elevation, @height, @area, @transform, @material, @representation, @isElementDefinition, @id, @name});
+                validator.PreConstruct(new object[]{ @perimeter, @direction, @suiteName, @suiteNumber, @department, @number, @designArea, @designRatio, @rotation, @elevation, @height, @area, @transform, @material, @representation, @isElementDefinition, @id, @name});
             }
         
             this.Perimeter = @perimeter;
@@ -43,7 +43,6 @@ namespace Elements
             this.DesignArea = @designArea;
             this.DesignRatio = @designRatio;
             this.Rotation = @rotation;
-            this.LevelName = @levelName;
             this.Elevation = @elevation;
             this.Height = @height;
             this.Area = @area;
@@ -93,10 +92,6 @@ namespace Elements
         /// <summary>The rotation in degrees of the room.</summary>
         [Newtonsoft.Json.JsonProperty("Rotation", Required = Newtonsoft.Json.Required.Always)]
         public double Rotation { get; set; }
-    
-        /// <summary>The level name of the room.</summary>
-        [Newtonsoft.Json.JsonProperty("Level Name", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string LevelName { get; set; }
     
         /// <summary>The elevation of the room.</summary>
         [Newtonsoft.Json.JsonProperty("Elevation", Required = Newtonsoft.Json.Required.Always)]
