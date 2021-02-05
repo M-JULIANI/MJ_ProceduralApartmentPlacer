@@ -9,7 +9,7 @@
     <PackageReference Include="xunit" Version="2.4.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
     <PackageReference Include="coverlet.collector" Version="1.2.0" />
-    <PackageReference Include="GeometryEx" Version="8.0.0" />
+    <PackageReference Include="Hypar.Elements" Version="0.8.3-alpha7" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\src\MJProceduralApartmentPlacer.csproj" />

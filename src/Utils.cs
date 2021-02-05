@@ -26,5 +26,17 @@ namespace MJProceduralApartmentPlacer
 
             return new Vector3(avgX, avgY, avgZ);
         }
+
+        public static Line ExtendLineByEnd(Line line, double distance)
+        {
+
+            Vector3 dir = line.End - line.Start;
+            var unitizedDir = dir.Unitized();
+
+            Line outLine = new Line(line.Start, unitizedDir, distance);
+            return outLine;
+        }
     }
+
+    
 }

@@ -4,7 +4,7 @@ using Elements.Geometry.Solids;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using GeometryEx;
+//using GeometryEx;
 using System.Threading.Tasks;
 
  namespace MJProceduralApartmentPlacer
@@ -179,12 +179,13 @@ public List<Vector3> startPts;
                           // if(i==1)
                           // {
                           // System.IO.File.WriteAllText("D:/Hypar/testUnionAll_2.json", Newtonsoft.Json.JsonConvert.SerializeObject(slivs.OrderBy(s=>s._shiftIndex).Select(s=>s._poly).ToList()));
-                        //var polys = slivs.Select(s=>s._poly).ToList();
-                        // var profiles = polys.Select(s=>new Profile(s));
-                        //var profileResult = Profile.UnionAll(profiles);
+                        var polys = slivs.Select(s=>s._poly).ToList();
+                         var profiles = polys.Select(s=>new Profile(s));
+                       // var profileResult = Profile.UnionAll(profiles);
                           // }
                         //var rawUnion = Polygon.UnionAll(polys)[0];
-
+                        
+                      
                         //if(rawUnion!= null)
                        // {
                         //semiSlivers.Add(rawUnion);
@@ -498,12 +499,14 @@ public List<Vector3> startPts;
            }
            else
            {
-              _WallA[i] = new SmWall(i, initCoreLines[i].ExtendEnd(_leaseOffset));
+              // _WallA[i] = new SmWall(i, initCoreLines[i].ExtendEnd(_leaseOffset)
+              _WallA[i] = new SmWall(i, Utils.ExtendLineByEnd(initCoreLines[i], _leaseOffset));
            }
          }
          else
          {
-          _WallA[i] = new SmWall(i, initCoreLines[i].ExtendEnd(_leaseOffset));
+          // _WallA[i] = new SmWall(i, initCoreLines[i].ExtendEnd(_leaseOffset));
+          _WallA[i] = new SmWall(i, Utils.ExtendLineByEnd(initCoreLines[i], _leaseOffset));
         
          }
         // });
@@ -511,22 +514,8 @@ public List<Vector3> startPts;
        }
 
        _Walls = _WallA;
-
-       
+ 
     }
-
-        // public Polygon [] SortGeo(List<Polygon> Polygons)
-        // {
-        //   SmAreaPt [] initAreas = new SmAreaPt[Polygons.Count];
-        //   int[] indices = Enumerable.Range(0, Polygons.Count).ToArray();
-        //   System.Threading.Tasks.Parallel.ForEach(indices, (i) => {
-        //     var score = ComputeScoreByCurve(Polygons[i], _SortingCurve);
-        //     initAreas[i] = new SmAreaPt(Polygons[i], score);
-        //     });
-
-        //   var output = initAreas.OrderBy(i => i._score).Select(s => s._poly).ToArray();
-        //   return output;
-        // }
 
         public Polygon [] SortGeo(List<SmSlivers> Slivers, Curve curve, bool flipped)
         {
@@ -678,7 +667,6 @@ public List<Vector3> startPts;
             {
 
               var newWallSeg = AlignWallPlease(_SubSpaces[w], _Walls[w]);
-              //var closestSeg = _SubSpaces[w].Segments().OrderBy(s=>s.PointAt(0.5).DistanceTo(_Walls[w]._curve.PointAt(0.5))).ToList()[0];
 
 
               tempWalls[w] = new SmWall(w, newWallSeg);
@@ -703,7 +691,6 @@ public List<Vector3> startPts;
             {
                 ln = new Line(_Walls[w]._curve.PointAt(0.0), _Walls[w]._curve.PointAt(1.0));
                 splitLines = ln.DivideByLength(moduleSliver, false);
-                //Console.WriteLine("numSplitLines: " + splitLines.Count.ToString());
 
                 var tempList = new List<SmSlivers>();
 
@@ -729,8 +716,6 @@ public List<Vector3> startPts;
             for (int j = 0; j < _Slivers.Length; j++)
             {
               var PIndexes = new List<int>();
-
-              //ar sortedFaces = SortGeo(_Slivers[j], _Walls[j]._curve, _Walls[j]._flipped).ToList();
 
               var sortedFaces = _Slivers[j].ToList();
 

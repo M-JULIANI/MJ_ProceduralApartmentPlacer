@@ -20,11 +20,11 @@ namespace MJProceduralApartmentPlacer
         {
           if(!inputModels.TryGetValue("Floors", out var levelsModel)){throw new Exception("No floors created. Please create those first.");}
 
-          Console.WriteLine("nothing seems to be working");
           // if(!inputModels.TryGetValue("MJ_ProceduralMass", out var cellSizeModel)){throw new Exception("No 'CellSize' received from MJProceduralMassing, please make sure you use that function to create an envelope .");}
 
           //var cellSize = cellSizeModel.AllElementsOfType<double>().First();
 
+          //debuggin/ viz things
           List<ModelCurve> sketches = new List<ModelCurve>();
            List<ModelCurve> coreSketch = new List<ModelCurve>();
            List<ModelCurve> subSpaceSketch = new List<ModelCurve>();
@@ -92,9 +92,6 @@ namespace MJProceduralApartmentPlacer
             Console.WriteLine("rooms should be: " + placedSpaces.Count.ToString());
 
              
-
-
-
             if(engine.PlacedSpaces!= null)
               listPlaced.AddRange(engine.PlacedSpaces);
 

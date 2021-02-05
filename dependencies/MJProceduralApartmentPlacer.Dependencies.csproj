@@ -3,7 +3,6 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="GeometryEx" Version="8.0.0" />
     <PackageReference Include="Hypar.Elements" Version="0.8.2" />
   </ItemGroup>
 </Project>
