@@ -33,7 +33,7 @@ namespace MJProceduralApartmentPlacer
             Vector3 dir = line.End - line.Start;
             var unitizedDir = dir.Unitized();
 
-            Line outLine = new Line(line.Start, unitizedDir, distance);
+            Line outLine = new Line(line.Start, unitizedDir, distance + line.Length());
             return outLine;
         }
     }

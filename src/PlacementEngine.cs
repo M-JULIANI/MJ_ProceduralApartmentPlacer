@@ -65,7 +65,7 @@ public List<Vector3> startPts;
   {
 
   }
-    public PlacementEngine(List<SmSpace> spaces, double leaseDepth, List<SmLevel> levels, IList<Polygon> corePolys, double splitInterval)
+    public PlacementEngine(List<SmSpace> spaces, double leaseDepth, List<SmLevel> levels, double splitInterval, IList<Polygon> corePolys = null)
     {
       _leaseOffset = leaseDepth * _worldScale;
       medOffset = _leaseOffset * 0.5;
@@ -112,7 +112,7 @@ public List<Vector3> startPts;
      InitWalls();
 
       _PlacedProgramSpaces = new List<SmSpace>();  
-     //InitSubSpaces(0.5, corePolys);
+    // InitSubSpaces(0.5, corePolys);
 
     }
 
@@ -636,6 +636,7 @@ public List<Vector3> startPts;
                     offsets[0] = _SubSpaces[_SubSpaces.Length - 1];
                     var splitters = _SubSpaces[i].Difference(offsets);
 
+                    if(splitters!= null){
                     if(splitters.Count==2 )
                     {
                        resultingPoly = splitters[1];
@@ -644,13 +645,14 @@ public List<Vector3> startPts;
                       resultingPoly = splitters[0];
 
                       otherSubSpaces[i] = resultingPoly;
+                    }
                 }
                 else
                 {
 
                   offsets[0] = _SubSpaces[i - 1];
                     var splitters = _SubSpaces[i].Difference(offsets);
-
+                    if(splitters!= null){
                     if(splitters.Count==2)
                     {
                        resultingPoly = splitters[1];
@@ -659,6 +661,7 @@ public List<Vector3> startPts;
                       resultingPoly = splitters[0];
 
                        otherSubSpaces[i] = resultingPoly;
+                    }
                 }
             }
             _SubSpaces = otherSubSpaces;
