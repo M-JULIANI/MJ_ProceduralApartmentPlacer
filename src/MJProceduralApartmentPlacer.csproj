@@ -1,10 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
-    <ProjectReference Include="..\dependencies\MJProceduralApartmentPlacer.Dependencies.csproj" />
+    <ProjectReference Include="..\dependencies\MJProceduralApartmentPlacer.Dependencies.csproj"/>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Hypar.Elements" Version="0.8.2" />
-    <PackageReference Include="Hypar.Functions" Version="0.8.5" />
+    <PackageReference Include="Hypar.Elements" Version="0.8.3-alpha7"/>
+    <PackageReference Include="Hypar.Functions" Version="0.8.5"/>
   </ItemGroup>
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>

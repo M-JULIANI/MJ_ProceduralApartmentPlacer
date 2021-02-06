@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace MJProceduralApartmentPlacer
 {
-      public static class MJProceduralApartmentPlacer
+    public static class MJProceduralApartmentPlacer
     {
         /// <summary>
         /// Places an apartment mix in a procedurally generated mass.
@@ -18,114 +18,114 @@ namespace MJProceduralApartmentPlacer
         /// <returns>A MJProceduralApartmentPlacerOutputs instance containing computed results and the model with any new elements.</returns>
         public static MJProceduralApartmentPlacerOutputs Execute(Dictionary<string, Model> inputModels, MJProceduralApartmentPlacerInputs input)
         {
-          if(!inputModels.TryGetValue("Floors", out var levelsModel)){throw new Exception("No floors created. Please create those first.");}
+            if (!inputModels.TryGetValue("Floors", out var levelsModel)) { throw new Exception("No floors created. Please create those first."); }
 
-          // if(!inputModels.TryGetValue("MJ_ProceduralMass", out var cellSizeModel)){throw new Exception("No 'CellSize' received from MJProceduralMassing, please make sure you use that function to create an envelope .");}
+            // if(!inputModels.TryGetValue("MJ_ProceduralMass", out var cellSizeModel)){throw new Exception("No 'CellSize' received from MJProceduralMassing, please make sure you use that function to create an envelope .");}
 
-          //var cellSize = cellSizeModel.AllElementsOfType<double>().First();
+            //var cellSize = cellSizeModel.AllElementsOfType<double>().First();
 
-          //debuggin/ viz things
-          List<ModelCurve> sketches = new List<ModelCurve>();
-           List<ModelCurve> coreSketch = new List<ModelCurve>();
-           List<ModelCurve> subSpaceSketch = new List<ModelCurve>();
-           List<SmSlivers> sliverSketch = new List<SmSlivers>();
-          List<Polygon> outROomSlivs = new List<Polygon>();
+            //debuggin/ viz things
+            List<ModelCurve> sketches = new List<ModelCurve>();
+            List<ModelCurve> coreSketch = new List<ModelCurve>();
+            List<ModelCurve> subSpaceSketch = new List<ModelCurve>();
+            List<SmSlivers> sliverSketch = new List<SmSlivers>();
+            List<Polygon> outROomSlivs = new List<Polygon>();
 
-          List<SmSpace> placedSpaces = new List<SmSpace>();
-          List<SmLevel> _levels= new List<SmLevel>();
-          PlacementEngine engine;
+            List<SmSpace> placedSpaces = new List<SmSpace>();
+            List<SmLevel> _levels = new List<SmLevel>();
+            PlacementEngine engine;
 
-          //process levels & floor boundary crvs
-          var allFloorProfiles = levelsModel.AllElementsOfType<Floor>().OrderBy(f=>f.Elevation).ToList();
+            //process levels & floor boundary crvs
+            var allFloorProfiles = levelsModel.AllElementsOfType<Floor>().OrderBy(f => f.Elevation).ToList();
 
-          foreach(var f in allFloorProfiles)
-          {
-            var sBoundary = new SmFloorBoundary(f.Profile.Perimeter);
-            var lvl = new SmLevel(f.Elevation, sBoundary);
-            _levels.Add(lvl);
-          }
+            foreach (var f in allFloorProfiles)
+            {
+                var sBoundary = new SmFloorBoundary(f.Profile.Perimeter);
+                var lvl = new SmLevel(f.Elevation, sBoundary);
+                _levels.Add(lvl);
+            }
 
-          ///create unplaced spaces
-          List<SmSpace> allUnitsPreplaced = new List<SmSpace>();
-          int count = 0;
+            ///create unplaced spaces
+            List<SmSpace> allUnitsPreplaced = new List<SmSpace>();
+            int count = 0;
 
-          for(int i=0; i< input.UnitMix.Nodes.Count; i++)
-          {
-               for(int j=0; j< input.UnitMix.Nodes[i].UnitCount; j++)
-               {
-                 allUnitsPreplaced.Add(new SmSpace(i, count, false, input.UnitMix.Nodes[i].UnitArea)); //check to see if 'i' corresponds to the right unit type...
-                 count++;
-               }
-          }
+            for (int i = 0; i < input.UnitMix.Nodes.Count; i++)
+            {
+                for (int j = 0; j < input.UnitMix.Nodes[i].UnitCount; j++)
+                {
+                    allUnitsPreplaced.Add(new SmSpace(i, count, false, input.UnitMix.Nodes[i].UnitArea)); //check to see if 'i' corresponds to the right unit type...
+                    count++;
+                }
+            }
 
-          var listPlaced = new List<SmSpace>();
-          try
-          {
-            //allUnitsPreplaced = SmSpace.Jitter(allUnitsPreplaced, 0.5).ToList();
+            var listPlaced = new List<SmSpace>();
+            try
+            {
+                //allUnitsPreplaced = SmSpace.Jitter(allUnitsPreplaced, 0.5).ToList();
 
-            engine = new PlacementEngine(allUnitsPreplaced, (input.CellSize - input.CorridorWidth) * 0.5,_levels, 0.5, input.CorePolygons);
+                engine = new PlacementEngine(allUnitsPreplaced, (input.CellSize - input.CorridorWidth) * 0.5, _levels, 0.5, input.CorePolygons);
 
-            var wallCrvs = engine._Walls.Select(s=>new ModelCurve(s._curve)).ToList();
+                var wallCrvs = engine._Walls.Select(s => new ModelCurve(s._curve)).ToList();
 
-              var coreCrvs = engine.coreLinesViz.Select(s=>new ModelCurve(s._curve)).ToList();
+                var coreCrvs = engine.coreLinesViz.Select(s => new ModelCurve(s._curve)).ToList();
 
-            sketches.AddRange(wallCrvs);
-            coreSketch.AddRange(coreCrvs);
-            
+                sketches.AddRange(wallCrvs);
+                coreSketch.AddRange(coreCrvs);
 
-    
 
-            string feedbackString = "No feedback yet...";
 
-            
-           engine.RunFirstFloor(input.Seam, out feedbackString);
+
+                string feedbackString = "No feedback yet...";
+
+
+                engine.RunFirstFloor(input.Seam, out feedbackString);
 
                 for (int i = 0; i < engine._Slivers.Length; i++)
                 {
                     foreach (var s in engine._Slivers[i])
                         sliverSketch.Add(s);
                 }
-            engine.semiSlivers.ToList().ForEach(s=>subSpaceSketch.Add(s));
-            Console.WriteLine($"Main feedback: {feedbackString}");
+                engine.semiSlivers.ToList().ForEach(s => subSpaceSketch.Add(s));
+                Console.WriteLine($"Main feedback: {feedbackString}");
 
-            placedSpaces = engine._PlacedProgramSpaces.ToList();
-            Console.WriteLine("rooms should be: " + placedSpaces.Count.ToString());
+                placedSpaces = engine._PlacedProgramSpaces.ToList();
+                Console.WriteLine("rooms should be: " + placedSpaces.Count.ToString());
 
-             
-            if(engine.PlacedSpaces!= null)
-              listPlaced.AddRange(engine.PlacedSpaces);
 
-            // List<string> debugStack;
-            // engine.TryStackBuilding(listPlaced, out debugStack);
+                if (engine.PlacedSpaces != null)
+                    listPlaced.AddRange(engine.PlacedSpaces);
 
-          }
-         catch (Exception e)
-         {
-           Console.WriteLine(e.ToString());
-         }
+                // List<string> debugStack;
+                // engine.TryStackBuilding(listPlaced, out debugStack);
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
 
 
             var output = new MJProceduralApartmentPlacerOutputs(listPlaced.Count, allUnitsPreplaced.Count - listPlaced.Count);
 
-          var materials = new Material[input.UnitMix.Nodes.Count];
+            var materials = new Material[input.UnitMix.Nodes.Count];
 
-              for(int i=0; i< input.UnitMix.Nodes.Count; i++)
-          {
-            var col = input.UnitMix.Nodes[i].Color;
-               col.Alpha = 0.85;
-              materials[i] = new Material(input.UnitMix.Nodes[i].SpaceType, col, 0.0f, 0.0f);
-          }
-
-            for(int i=0; i< placedSpaces.Count; i++)
+            for (int i = 0; i < input.UnitMix.Nodes.Count; i++)
             {
-            var representation = new Representation(new SolidOperation[] { new Extrude(placedSpaces[i].poly, 2.0, Vector3.ZAxis, false) });
+                var col = input.UnitMix.Nodes[i].Color;
+                col.Alpha = 0.85;
+                materials[i] = new Material(input.UnitMix.Nodes[i].SpaceType, col, 0.0f, 0.0f);
+            }
 
-              var room = new Room(placedSpaces[i].poly, Vector3.ZAxis, $"Unit {placedSpaces[i].roomNumber}", $"{placedSpaces[i].roomNumber}", $"Type {placedSpaces[i].type}", placedSpaces[i].sorter.ToString(), placedSpaces[i].designArea, 1.0, 0.0, "none", placedSpaces[i].poly.Centroid().Z, 2.0, placedSpaces[i].area, new Transform(0,0, placedSpaces[i].poly.Centroid().Z), materials[placedSpaces[i].type], representation, false, Guid.NewGuid(), "");
+            for (int i = 0; i < placedSpaces.Count; i++)
+            {
+                var representation = new Representation(new SolidOperation[] { new Extrude(placedSpaces[i].poly.Offset(-0.15)[0], 2.0, Vector3.ZAxis, false) });
 
-              output.Model.AddElement(room);
-            }    
+                var room = new Room(placedSpaces[i].poly.Offset(-0.15)[0], Vector3.ZAxis, $"Unit {placedSpaces[i].roomNumber}", $"{placedSpaces[i].roomNumber}", $"Type {placedSpaces[i].type}", placedSpaces[i].sorter.ToString(), placedSpaces[i].designArea, 1.0, 0.0, "none", placedSpaces[i].poly.Centroid().Z, 2.0, placedSpaces[i].area, new Transform(0, 0, placedSpaces[i].poly.Centroid().Z), materials[placedSpaces[i].type], representation, false, Guid.NewGuid(), "");
 
-            
+                output.Model.AddElement(room);
+            }
+
+
 
             // for(int i=0; i< sliverSketch.Count; i++)
             // {
@@ -138,18 +138,18 @@ namespace MJProceduralApartmentPlacer
 
             output.Model.AddElements(sketches);
             output.Model.AddElements(coreSketch);
-           /// output.Model.AddElements(subSpaceSketch);
-           //output.Model.AddElements(sliverSketch);
+            /// output.Model.AddElements(subSpaceSketch);
+            //output.Model.AddElements(sliverSketch);
 
             // Console.WriteLine("sliver count is: "+ engine._SubSpaces.Length.ToString());
-           
-            
+
+
 
             //  foreach(var s in engine._Slivers[0])
             //   output.Model.AddElement(new ModelCurve(s));
 
 
-    
+
 
             // var profile = WideFlangeProfileServer.Instance.GetProfileByType(WideFlangeProfileType.W10x100);
             // var pp = 1;
@@ -162,8 +162,5 @@ namespace MJProceduralApartmentPlacer
 
             return output;
         }
-      }
-
-
-    
+    }
 }
