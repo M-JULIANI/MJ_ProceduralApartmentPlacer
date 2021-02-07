@@ -28,18 +28,17 @@ namespace MJProceduralApartmentPlacer
     {
         [Newtonsoft.Json.JsonConstructor]
         
-        public MJProceduralApartmentPlacerInputs(UnitMix @unitMix, double @seam, double @unitShuffle, IList<Polygon> @corePolygons, double @cellSize, string bucketName, string uploadsBucket, Dictionary<string, string> modelInputKeys, string gltfKey, string elementsKey, string ifcKey):
+        public MJProceduralApartmentPlacerInputs(UnitMix @unitMix, double @seam, IList<Polygon> @corePolygons, double @cellSize, string bucketName, string uploadsBucket, Dictionary<string, string> modelInputKeys, string gltfKey, string elementsKey, string ifcKey):
         base(bucketName, uploadsBucket, modelInputKeys, gltfKey, elementsKey, ifcKey)
         {
             var validator = Validator.Instance.GetFirstValidatorForType<MJProceduralApartmentPlacerInputs>();
             if(validator != null)
             {
-                validator.PreConstruct(new object[]{ @unitMix, @seam, @unitShuffle, @corePolygons, @cellSize});
+                validator.PreConstruct(new object[]{ @unitMix, @seam, @corePolygons, @cellSize});
             }
         
             this.UnitMix = @unitMix;
             this.Seam = @seam;
-            this.UnitShuffle = @unitShuffle;
             this.CorePolygons = @corePolygons;
             this.CellSize = @cellSize;
         
@@ -57,19 +56,14 @@ namespace MJProceduralApartmentPlacer
         [System.ComponentModel.DataAnnotations.Range(0D, 1D)]
         public double Seam { get; set; } = 0.54D;
     
-        /// <summary>Parameter that can be adjusted for shuffling the order of the aparment stack (2d).</summary>
-        [Newtonsoft.Json.JsonProperty("UnitShuffle", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        [System.ComponentModel.DataAnnotations.Range(0.0D, 1.0D)]
-        public double UnitShuffle { get; set; } = 0.54D;
-    
         /// <summary>Core polygons around which apartments should be placed.</summary>
         [Newtonsoft.Json.JsonProperty("CorePolygons", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public IList<Polygon> CorePolygons { get; set; }
     
         /// <summary>CellSize from MJ_ProceduralMass </summary>
         [Newtonsoft.Json.JsonProperty("CellSize", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        [System.ComponentModel.DataAnnotations.Range(15D, 20D)]
-        public double CellSize { get; set; } = 18D;
+        [System.ComponentModel.DataAnnotations.Range(8D, 15D)]
+        public double CellSize { get; set; } = 10D;
     
     
     }

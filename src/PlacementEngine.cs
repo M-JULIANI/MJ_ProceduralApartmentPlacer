@@ -100,7 +100,12 @@ namespace MJProceduralApartmentPlacer
             _boundaryPoly = tempPoly;
             _BoundaryCurve = boundary.ToPolyline();
 
+            Console.WriteLine(boundary.ToString());
+
+            // if(!boundary.IsClockWise())
+            //     boundary.Reversed();
             _Core = InitCoreCrv(boundary);
+           // _Core = boundary.Offset(-5.0, EndType.ClosedPolygon)[0];
 
             _SortingCurve = InitSortingCrv(boundary);
 
@@ -813,13 +818,13 @@ namespace MJProceduralApartmentPlacer
                         var branchPolygons = branchSpaces.Select(s => s._poly).ToList();
                         var rawUnion = Polygon.UnionAll(branchPolygons)[0];
 
-                       // foreach(var p in branchPolygons)
-                        // {
-                        //      var space = new SmSpace(_PlaceableSpaces[i].type, _PlaceableSpaces[i].roomNumber, true, _PlaceableSpaces[i].designArea, branchPolygons[0]);
-                        //     space.roomLevel = firstLevel;
-                        //     space.sorter = i;
-                        //     _ProcessedProgram.Add(i, space);
-                        // }
+                    //    foreach(var p in branchPolygons)
+                    //     {
+                    //          var space = new SmSpace(_PlaceableSpaces[i].type, _PlaceableSpaces[i].roomNumber, true, _PlaceableSpaces[i].designArea, branchPolygons[0]);
+                    //         space.roomLevel = firstLevel;
+                    //         space.sorter = i;
+                    //         _ProcessedProgram.Add(i, space);
+                    //     }
 
                         if (rawUnion != null)
                         {

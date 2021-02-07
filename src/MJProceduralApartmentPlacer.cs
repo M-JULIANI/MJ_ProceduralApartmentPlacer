@@ -28,7 +28,7 @@ namespace MJProceduralApartmentPlacer
             List<ModelCurve> sketches = new List<ModelCurve>();
             List<ModelCurve> coreSketch = new List<ModelCurve>();
             List<ModelCurve> subSpaceSketch = new List<ModelCurve>();
-            List<SmSlivers> sliverSketch = new List<SmSlivers>();
+            //List<SmSlivers> sliverSketch = new List<SmSlivers>();
             List<Polygon> outROomSlivs = new List<Polygon>();
 
             List<SmSpace> placedSpaces = new List<SmSpace>();
@@ -67,11 +67,8 @@ namespace MJProceduralApartmentPlacer
                 }
             }
 
-            var listPlaced = new List<SmSpace>();
             try
             {
-                //allUnitsPreplaced = SmSpace.Jitter(allUnitsPreplaced, 0.5).ToList();
-
                 engine = new PlacementEngine(allUnitsPreplaced, (input.CellSize - 2.0) * 0.5, _levels, 0.5, input.CorePolygons);
 
                 var wallCrvs = engine._Walls.Select(s => new ModelCurve(s._curve)).ToList();
@@ -85,11 +82,11 @@ namespace MJProceduralApartmentPlacer
 
                 engine.RunFirstFloor(input.Seam, out feedbackString);
 
-                for (int i = 0; i < engine._Slivers.Length; i++)
-                {
-                    foreach (var s in engine._Slivers[i])
-                        sliverSketch.Add(s);
-                }
+                // for (int i = 0; i < engine._Slivers.Length; i++)
+                // {
+                //     foreach (var s in engine._Slivers[i])
+                //         sliverSketch.Add(s);
+                // }
                // engine.semiSlivers.ToList().ForEach(s => subSpaceSketch.Add(s));
                 Console.WriteLine($"Main feedback: {feedbackString}");
 
@@ -113,7 +110,7 @@ namespace MJProceduralApartmentPlacer
             for (int i = 0; i < input.UnitMix.Nodes.Count; i++)
             {
                 var col = input.UnitMix.Nodes[i].Color;
-                col.Alpha = 0.85;
+                col.Alpha = 1.0;
                 materials[i] = new Material(input.UnitMix.Nodes[i].SpaceType, col, 0.0f, 0.0f);
             }
 

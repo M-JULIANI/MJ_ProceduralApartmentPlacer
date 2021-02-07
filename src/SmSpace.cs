@@ -56,7 +56,7 @@ namespace MJProceduralApartmentPlacer
             this.designArea = designArea;
         }
 
-        public static SmSpace[] Jitter(List<SmSpace> initList, double jitterFactor)
+     public static SmSpace[] Jitter(List<SmSpace> initList, double jitterFactor)
         {
             int[] array = new int[initList.Count];
 

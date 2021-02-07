@@ -21,8 +21,8 @@
             {
               "Space Type": "Unit A",
               "Unit Count": 60,
-              "Unit Area": 20,
-              "Target Area": 100,
+              "Unit Area": 48,
+              "Target Area": 48,
               "Color": {
                 "Red": 0,
                 "Alpha": 1,
@@ -33,8 +33,8 @@
             {
               "Space Type": "Unit B",
               "Unit Count": 60,
-              "Unit Area": 30,
-              "Target Area": 100,
+              "Unit Area": 62,
+              "Target Area": 62,
               "Color": {
                 "Red": 0,
                 "Alpha": 1,
@@ -45,8 +45,8 @@
             {
               "Space Type": "Unit C",
               "Unit Count": 60,
-              "Unit Area": 40,
-              "Target Area": 300,
+              "Unit Area": 80,
+              "Target Area": 80,
               "Color": {
                 "Red": 0.733,
                 "Alpha": 1,
@@ -90,8 +90,8 @@
               {
                 "Space Type": "Unit A",
                 "Unit Count": 60,
-                "Unit Area": 10,
-                "Target Area": 100,
+                "Unit Area": 48,
+                "Target Area": 48,
                 "Color": {
                   "Red": 0,
                   "Alpha": 1,
@@ -102,8 +102,8 @@
               {
                 "Space Type": "Unit B",
                 "Unit Count": 60,
-                "Unit Area": 20,
-                "Target Area": 100,
+                "Unit Area": 62,
+                "Target Area": 62,
                 "Color": {
                   "Red": 0,
                   "Alpha": 1,
@@ -114,8 +114,8 @@
               {
                 "Space Type": "Unit C",
                 "Unit Count": 60,
-                "Unit Area": 40,
-                "Target Area": 300,
+                "Unit Area": 80,
+                "Target Area": 80,
                 "Color": {
                   "Red": 0.733,
                   "Alpha": 1,
@@ -136,15 +136,6 @@
         "$hyparOrder": 4,
         "minimum": 0
       },
-       "UnitShuffle": {
-        "multipleOf": 0.01,
-        "default": 0.54,
-        "maximum": 1.0,
-        "description": "Parameter that can be adjusted for shuffling the order of the aparment stack (2d).",
-        "type": "number",
-        "$hyparOrder": 4,
-        "minimum": 0.0
-      },
       "CorePolygons": {
         "description": "Core polygons around which apartments should be placed.",
         "default": [],
@@ -161,12 +152,12 @@
       },
       "CellSize": {
         "multipleOf": 0.1,
-        "default": 18,
-        "maximum": 20,
+        "default": 10,
+        "maximum": 15,
         "description": "CellSize from MJ_ProceduralMass ",
         "type": "number",
         "$hyparOrder": 0,
-        "minimum": 15
+        "minimum": 8
       }
     }
   },
