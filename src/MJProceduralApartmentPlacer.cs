@@ -38,10 +38,19 @@ namespace MJProceduralApartmentPlacer
             //process levels & floor boundary crvs
             var allFloorProfiles = levelsModel.AllElementsOfType<Floor>().OrderBy(f => f.Elevation).ToList();
 
-            foreach (var f in allFloorProfiles)
+            var distinctHeights = allFloorProfiles.Select(s=>s.Elevation).Distinct();
+
+            foreach(var h in distinctHeights)
             {
-                var sBoundary = new SmFloorBoundary(f.Profile.Perimeter);
-                var lvl = new SmLevel(f.Elevation, sBoundary);
+                 var lvl = new SmLevel(h);
+                var boundaries = new List<SmFloorBoundary>();
+                foreach(var fl in allFloorProfiles)
+                {
+                     var sBoundary = new SmFloorBoundary(fl.Profile.Perimeter);
+                     if(fl.Elevation == h)
+                        boundaries.Add(sBoundary);
+                }
+                lvl._boundaries = boundaries;
                 _levels.Add(lvl);
             }
 
@@ -63,13 +72,13 @@ namespace MJProceduralApartmentPlacer
             {
                 //allUnitsPreplaced = SmSpace.Jitter(allUnitsPreplaced, 0.5).ToList();
 
-                engine = new PlacementEngine(allUnitsPreplaced, (input.CellSize - input.CorridorWidth) * 0.5, _levels, 0.5, input.CorePolygons);
+                engine = new PlacementEngine(allUnitsPreplaced, (input.CellSize - 2.0) * 0.5, _levels, 0.5, input.CorePolygons);
 
                 var wallCrvs = engine._Walls.Select(s => new ModelCurve(s._curve)).ToList();
 
                 var coreCrvs = engine.coreLinesViz.Select(s => new ModelCurve(s._curve)).ToList();
 
-                sketches.AddRange(wallCrvs);
+                //sketches.AddRange(wallCrvs);
                 coreSketch.AddRange(coreCrvs);
 
                 string feedbackString = "No feedback yet...";
@@ -84,8 +93,8 @@ namespace MJProceduralApartmentPlacer
                // engine.semiSlivers.ToList().ForEach(s => subSpaceSketch.Add(s));
                 Console.WriteLine($"Main feedback: {feedbackString}");
 
-                // List<string> debugStack;
-                // engine.TryStackBuilding(listPlaced, out debugStack);
+               List<string> debugStack;
+               engine.TryStackBuilding(out debugStack);
 
                 placedSpaces = engine.PlacedSpaces.ToList();
                 Console.WriteLine("rooms should be: " + placedSpaces.Count.ToString());
@@ -110,12 +119,21 @@ namespace MJProceduralApartmentPlacer
 
             for (int i = 0; i < placedSpaces.Count; i++)
             {
-                var representation = new Representation(new SolidOperation[] { new Extrude(placedSpaces[i].poly.Offset(-0.15)[0], 2.0, Vector3.ZAxis, false) });
+                var representation = new Representation(new SolidOperation[] { new Extrude(placedSpaces[i].poly.Offset(-0.15)[0], placedSpaces[i].roomLevel._levelHeightToNext, Vector3.ZAxis, false) });
 
-                var room = new Room(placedSpaces[i].poly.Offset(-0.15)[0], Vector3.ZAxis, $"Unit {placedSpaces[i].roomNumber}", $"{placedSpaces[i].roomNumber}", $"Type {placedSpaces[i].type}", placedSpaces[i].sorter.ToString(), placedSpaces[i].designArea, 1.0, 0.0, "none", placedSpaces[i].poly.Centroid().Z, 2.0, placedSpaces[i].area, new Transform(0, 0, placedSpaces[i].poly.Centroid().Z), materials[placedSpaces[i].type], representation, false, Guid.NewGuid(), "");
+                var room = new Room(placedSpaces[i].poly.Offset(-0.15)[0], Vector3.ZAxis, $"Unit {placedSpaces[i].roomNumber}", $"{placedSpaces[i].roomNumber}", $"Type {placedSpaces[i].type}", $"{placedSpaces[i].roomNumber}", placedSpaces[i].designArea, 1.0, 0.0, placedSpaces[i].roomLevel._index.ToString(), placedSpaces[i].roomLevel._elevation, placedSpaces[i].roomLevel._levelHeightToNext, placedSpaces[i].area, new Transform(0, 0, placedSpaces[i].roomLevel._elevation), materials[placedSpaces[i].type], representation, false, Guid.NewGuid(), "");
 
                 output.Model.AddElement(room);
             }
+            //    for (int i = 0; i < placedSpaces.Count; i++)
+            // {
+            //     var representation = new Representation(new SolidOperation[] { new Extrude(placedSpaces[i].poly.Offset(-0.15)[0], 2.0, Vector3.ZAxis, false) });
+
+            //     var room = new Room(placedSpaces[i].poly.Offset(-0.15)[0], Vector3.ZAxis, $"Unit {placedSpaces[i].roomNumber}", $"{placedSpaces[i].roomNumber}", $"Type {placedSpaces[i].type}", $"{placedSpaces[i].roomNumber}", placedSpaces[i].designArea, 1.0, 0.0, placedSpaces[i].roomLevel._index.ToString(), 0.0, 2.0, placedSpaces[i].area, new Transform(0, 0, placedSpaces[i].poly.Centroid().Z), materials[placedSpaces[i].type], representation, false, Guid.NewGuid(), "");
+
+            //     output.Model.AddElement(room);
+            // }
+
 
 
 
@@ -128,7 +146,7 @@ namespace MJProceduralApartmentPlacer
             //   output.Model.AddElement(room);
             // }    
 
-            output.Model.AddElements(sketches);
+            //output.Model.AddElements(sketches);
             output.Model.AddElements(coreSketch);
             /// output.Model.AddElements(subSpaceSketch);
             //output.Model.AddElements(sliverSketch);

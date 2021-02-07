@@ -152,21 +152,12 @@
       },
       "CellSize": {
         "multipleOf": 0.1,
-        "default": 8,
-        "maximum": 25,
+        "default": 15,
+        "maximum": 20,
         "description": "CellSize from MJ_ProceduralMass ",
         "type": "number",
         "$hyparOrder": 0,
         "minimum": 6
-      },
-      "CorridorWidth": {
-        "multipleOf": 0.25,
-        "default": 2.25,
-        "maximum": 3.5,
-        "description": "Width of corridor ",
-        "type": "number",
-        "$hyparOrder": 1,
-        "minimum": 3
       }
     }
   },

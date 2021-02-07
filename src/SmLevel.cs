@@ -8,6 +8,7 @@ public class SmLevel
   {
     public double _elevation;
     public int _index {get; set;}
+    public double _levelHeightToNext {get; set;}
     public List<SmFloorBoundary> _boundaries = new List<SmFloorBoundary>();
 
     public SmLevel(double elev)

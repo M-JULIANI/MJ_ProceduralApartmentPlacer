@@ -28,20 +28,19 @@ namespace MJProceduralApartmentPlacer
     {
         [Newtonsoft.Json.JsonConstructor]
         
-        public MJProceduralApartmentPlacerInputs(UnitMix @unitMix, double @seam, IList<Polygon> @corePolygons, double @cellSize, double @corridorWidth, string bucketName, string uploadsBucket, Dictionary<string, string> modelInputKeys, string gltfKey, string elementsKey, string ifcKey):
+        public MJProceduralApartmentPlacerInputs(UnitMix @unitMix, double @seam, IList<Polygon> @corePolygons, double @cellSize, string bucketName, string uploadsBucket, Dictionary<string, string> modelInputKeys, string gltfKey, string elementsKey, string ifcKey):
         base(bucketName, uploadsBucket, modelInputKeys, gltfKey, elementsKey, ifcKey)
         {
             var validator = Validator.Instance.GetFirstValidatorForType<MJProceduralApartmentPlacerInputs>();
             if(validator != null)
             {
-                validator.PreConstruct(new object[]{ @unitMix, @seam, @corePolygons, @cellSize, @corridorWidth});
+                validator.PreConstruct(new object[]{ @unitMix, @seam, @corePolygons, @cellSize});
             }
         
             this.UnitMix = @unitMix;
             this.Seam = @seam;
             this.CorePolygons = @corePolygons;
             this.CellSize = @cellSize;
-            this.CorridorWidth = @corridorWidth;
         
             if(validator != null)
             {
@@ -63,13 +62,8 @@ namespace MJProceduralApartmentPlacer
     
         /// <summary>CellSize from MJ_ProceduralMass </summary>
         [Newtonsoft.Json.JsonProperty("CellSize", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        [System.ComponentModel.DataAnnotations.Range(6D, 25D)]
-        public double CellSize { get; set; } = 8D;
-    
-        /// <summary>Width of corridor </summary>
-        [Newtonsoft.Json.JsonProperty("CorridorWidth", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        [System.ComponentModel.DataAnnotations.Range(3D, 3.5D)]
-        public double CorridorWidth { get; set; } = 2.25D;
+        [System.ComponentModel.DataAnnotations.Range(6D, 20D)]
+        public double CellSize { get; set; } = 15D;
     
     
     }

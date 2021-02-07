@@ -15,7 +15,7 @@ namespace MJProceduralApartmentPlacer
         public int roomNumber { get; set; } //room 1, 2, 3
         public double roomHeight { get; set; }
         public double sorter { get; set; }
-        public int roomLevel {get; set;}
+        public SmLevel roomLevel {get; set;}
         public bool placed { get; set; }
 
         public Polygon poly { get; set; }

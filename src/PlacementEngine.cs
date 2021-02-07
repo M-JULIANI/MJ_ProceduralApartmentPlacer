@@ -48,10 +48,12 @@ namespace MJProceduralApartmentPlacer
         double medOffset;
 
         public List<Curve> _Inters = new List<Curve>();
-        public List<SmLevel> inLvls;
+        private List<SmLevel> inLvls;
+        private SmLevel firstLevel;
 
         public List<Vector3> startPts;
         public List<SmSpace> PlacedSpaces;
+        public List<SmSpace> FirstFloorSpaces;
         public List<SmSpace> _PlaceableSpaces;
 
         public List<string> _debugger;
@@ -83,7 +85,8 @@ namespace MJProceduralApartmentPlacer
             }
             }
 
-            var firstLevel = inLvls.OrderBy(l => l._elevation).ToList()[0];
+            firstLevel = inLvls.OrderBy(l => l._elevation).ToList()[0];
+            firstLevel._index = 0;
             var boundary = firstLevel._boundaries[0].mainPoly;
             // var orientation = boundary.ClosedCurveOrientation(Vector3d.ZAxis);
             var ssspaces = SmSpace.Jitter(spaces, 0.99).ToList();
@@ -208,20 +211,34 @@ namespace MJProceduralApartmentPlacer
 /// </summary>
 /// <param name="units"></param>
 /// <param name="outMess"></param>
-        public void TryStackBuilding(List<SmSpace> units, out List<string> outMess)
+        public void TryStackBuilding(out List<string> outMess)
         {
             outMess = new List<string>();
+            PlacedSpaces = new List<SmSpace>();
 
             var sortedLvls = inLvls.OrderBy(l => l._elevation).ToList();
-            for (int i = 1; i < sortedLvls.Count; i++)//exclude first level
+        
+            for (int i = 0; i < sortedLvls.Count; i++)//exclude first level
             {
-                var boundaries = sortedLvls[i]._boundaries;
-                sortedLvls[i]._index = i;
-                for (int j = 0; j < boundaries.Count; j++)
+                var lvlHeightToNext = 2.0;
+                
+                if(i!= sortedLvls.Count-1)
                 {
+                    lvlHeightToNext = sortedLvls[i+1]._elevation -  sortedLvls[i]._elevation;
 
-                    var mess = TryProject(units, boundaries[j].offsetPoly, boundaries[j].mainPoly, sortedLvls[i]);// ground floor units, various boundaries
-                    outMess.Add(mess.ToString());
+                    var boundaries = sortedLvls[i+1]._boundaries;
+                    sortedLvls[i]._index = i;
+                    sortedLvls[i]._levelHeightToNext = lvlHeightToNext;
+
+                    for (int j = 0; j < boundaries.Count; j++)
+                    {
+
+                        var transformedOffset = boundaries[j].offsetPoly.TransformedPolygon(new Transform(0,0, sortedLvls[i]._elevation));
+                        var transformedMain = boundaries[j].mainPoly.TransformedPolygon(new Transform(0,0, sortedLvls[i]._elevation));
+
+                        var mess = TryProject(FirstFloorSpaces, transformedOffset, transformedMain, sortedLvls[i]);// ground floor units, various boundaries
+                        outMess.Add(mess.ToString());
+                    }
                 }
 
             }
@@ -244,8 +261,8 @@ namespace MJProceduralApartmentPlacer
             for (int i = 0; i < firstLvlUnits.Count; i++)
             {
                 var dupCrv = new Polygon(firstLvlUnits[i].poly.Vertices);
-
-                var movedCrv = dupCrv.TransformedPolygon(new Transform(new Vector3(0, 0, level._elevation)));
+                
+                var movedCrv = dupCrv.TransformedPolygon(new Transform(new Vector3(0, 0, offCrv.Centroid().Z)));
 
                 var pts = movedCrv.Vertices.ToList(); // getting unit crv poly pts
                 string mess;
@@ -258,13 +275,10 @@ namespace MJProceduralApartmentPlacer
                 if (Int32.TryParse(newRmNum, out parsedRmNum))
                     s = parsedRmNum;
 
-
                 if (inBool)
                 {
                     var unitN = new SmSpace(firstLvlUnits[i].type, s, true, firstLvlUnits[i].designArea, movedCrv);
-                    unitN.roomLevel = level._index;
-                    unitN.roomHeight = level._elevation;
-
+                    unitN.roomLevel = level;
                     PlacedSpaces.Add(unitN);
                     worked = true;
                 }
@@ -274,8 +288,7 @@ namespace MJProceduralApartmentPlacer
                     if (TrimKeep(mainCrv, movedCrv, level, out crvOut))
                     {
                         var unitN = new SmSpace(firstLvlUnits[i].type, s, true, firstLvlUnits[i].designArea, crvOut);
-                        unitN.roomLevel = level._index;
-                        unitN.roomHeight = level._elevation;
+                        unitN.roomLevel = level;
                         PlacedSpaces.Add(unitN);
                         worked = true;
                     }
@@ -302,7 +315,7 @@ namespace MJProceduralApartmentPlacer
             bool trimmed = false;
             crvOut = null;
 
-            var diffResults = toTrim.Difference(trimCrv);
+            var diffResults = toTrim.Intersection(trimCrv);
 
             var findInsidePoly = ReturnInsidePoly(diffResults.ToList(), trimCrv);
 
@@ -316,17 +329,18 @@ namespace MJProceduralApartmentPlacer
         }
 
 
-        public bool AllPtsIn(Curve curve, List<Vector3> pts, out string message)
+        public bool AllPtsIn(Polygon curve, List<Vector3> pts, out string message)
         {
             bool allIn = true;
             message = "clean";
 
             int countIn = 0;
 
-            Plane workPlane = new Plane(curve.PointAt(0), Vector3.ZAxis);
             for (int i = 0; i < pts.Count; i++)
-                if (new Polygon(curve.ToPolyline().Vertices).Contains(pts[i]))
+                if (curve.Contains(pts[i], out var contaimment))
+                if(contaimment ==Containment.Inside)
                     countIn++;
+
             if (countIn == 0)
                 allIn = false;
             else if (countIn == pts.Count)
@@ -787,6 +801,8 @@ namespace MJProceduralApartmentPlacer
             _ProcessedProgram = new Dictionary<int, SmSpace>();
             //SmSpace[] initSpaces = new SmSpace[PolygonTree.Keys.Count()];
 
+            try{
+
             for (int i = 0; i < PolygonTree.Keys.Count; i++)
             {
                 if (PolygonTree.TryGetValue(i, out var branchSpaces))
@@ -797,12 +813,18 @@ namespace MJProceduralApartmentPlacer
                         var branchPolygons = branchSpaces.Select(s => s._poly).ToList();
                         var rawUnion = Polygon.UnionAll(branchPolygons)[0];
 
+                       // foreach(var p in branchPolygons)
+                        // {
+                        //      var space = new SmSpace(_PlaceableSpaces[i].type, _PlaceableSpaces[i].roomNumber, true, _PlaceableSpaces[i].designArea, branchPolygons[0]);
+                        //     space.roomLevel = firstLevel;
+                        //     space.sorter = i;
+                        //     _ProcessedProgram.Add(i, space);
+                        // }
+
                         if (rawUnion != null)
                         {
                             var space = new SmSpace(_PlaceableSpaces[i].type, _PlaceableSpaces[i].roomNumber, true, _PlaceableSpaces[i].designArea, rawUnion);
-                            space.roomLevel = 0;
-                            space.roomHeight = 0.0;
-                            //initSpaces[i] = new SmSpace(int.Parse(spaceNames[i]), Math.Abs(rawUnion.Area()));
+                            space.roomLevel = firstLevel;
                             space.sorter = i;
                             _ProcessedProgram.Add(i, space);
                         }
@@ -810,9 +832,14 @@ namespace MJProceduralApartmentPlacer
 
                 }
             }
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
 
-            PlacedSpaces = new List<SmSpace>();
-            PlacedSpaces.AddRange(_ProcessedProgram.Values.ToList());
+            FirstFloorSpaces = new List<SmSpace>();
+            FirstFloorSpaces.AddRange(_ProcessedProgram.Values.ToList());
         }
     }
 }
