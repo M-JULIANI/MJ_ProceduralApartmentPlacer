@@ -72,11 +72,7 @@ namespace MJProceduralApartmentPlacer
                 sketches.AddRange(wallCrvs);
                 coreSketch.AddRange(coreCrvs);
 
-
-
-
                 string feedbackString = "No feedback yet...";
-
 
                 engine.RunFirstFloor(input.Seam, out feedbackString);
 
@@ -85,18 +81,14 @@ namespace MJProceduralApartmentPlacer
                     foreach (var s in engine._Slivers[i])
                         sliverSketch.Add(s);
                 }
-                engine.semiSlivers.ToList().ForEach(s => subSpaceSketch.Add(s));
+               // engine.semiSlivers.ToList().ForEach(s => subSpaceSketch.Add(s));
                 Console.WriteLine($"Main feedback: {feedbackString}");
-
-                placedSpaces = engine._PlacedProgramSpaces.ToList();
-                Console.WriteLine("rooms should be: " + placedSpaces.Count.ToString());
-
-
-                if (engine.PlacedSpaces != null)
-                    listPlaced.AddRange(engine.PlacedSpaces);
 
                 // List<string> debugStack;
                 // engine.TryStackBuilding(listPlaced, out debugStack);
+
+                placedSpaces = engine.PlacedSpaces.ToList();
+                Console.WriteLine("rooms should be: " + placedSpaces.Count.ToString());
 
             }
             catch (Exception e)
@@ -105,7 +97,7 @@ namespace MJProceduralApartmentPlacer
             }
 
 
-            var output = new MJProceduralApartmentPlacerOutputs(listPlaced.Count, allUnitsPreplaced.Count - listPlaced.Count);
+            var output = new MJProceduralApartmentPlacerOutputs(placedSpaces.Count, allUnitsPreplaced.Count - placedSpaces.Count);
 
             var materials = new Material[input.UnitMix.Nodes.Count];
 

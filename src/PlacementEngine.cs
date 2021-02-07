@@ -75,10 +75,12 @@ namespace MJProceduralApartmentPlacer
 
             coreCrvs = new List<Polygon>();
 
+            if(corePolys!= null){
             foreach (var p in corePolys)
             {
                 var c = p;
                 coreCrvs.Add(c);
+            }
             }
 
             var firstLevel = inLvls.OrderBy(l => l._elevation).ToList()[0];
@@ -163,154 +165,155 @@ namespace MJProceduralApartmentPlacer
                 for (int i = 0; i < _PlacedProgramSlivers.Keys.Count(); i++)
                     tempNames.Add(_spaces[i]);
 
-                semiSlivers = new List<Polygon>();
-                for (int i = 0; i < _PlacedProgramSlivers.Keys.Count(); i++)
-                {
-                    List<SmSlivers> slivs;
-                    if (_PlacedProgramSlivers.TryGetValue(i, out slivs))
-                    {
+                // semiSlivers = new List<Polygon>();
+                // for (int i = 0; i < _PlacedProgramSlivers.Keys.Count(); i++)
+                // {
+                //     List<SmSlivers> slivs;
+                //     if (_PlacedProgramSlivers.TryGetValue(i, out slivs))
+                //     {
 
-                        if (slivs != null && slivs.Count > 0)
-                        {
-                            Console.WriteLine("placed program: " + slivs.Count.ToString());
-                            //Polygon unionest;
-                            try
-                            {
-                                // if(i==1)
-                                // {
-                                // System.IO.File.WriteAllText("D:/Hypar/testUnionAll_2.json", Newtonsoft.Json.JsonConvert.SerializeObject(slivs.OrderBy(s=>s._shiftIndex).Select(s=>s._poly).ToList()));
-                                var polys = slivs.Select(s => s._poly).ToList();
-                                var profiles = polys.Select(s => new Profile(s));
-                                 //var profileResult = Profile.UnionAll(profiles);
-                                // }
-                                var rawUnion = Polygon.UnionAll(polys)[0];
+                //         if (slivs != null && slivs.Count > 0)
+                //         {
+                //             try
+                //             {
+                //                 var polys = slivs.Select(s => s._poly).ToList();
+                //                 var profiles = polys.Select(s => new Profile(s));
+                //                 var rawUnion = Polygon.UnionAll(polys)[0];
 
 
-                                if(rawUnion!= null)
-                                // {
-                                //semiSlivers.Add(rawUnion);
-                                //{
-                                //semiSlivers.Add(rawUnion);
-                                //foreach (var s in profileResult)
-                                {
-                                    var space = new SmSpace(_PlaceableSpaces[i].type, _PlaceableSpaces[i].roomNumber, true, _PlaceableSpaces[i].designArea, rawUnion);
-                                    space.sorter = i;
-                                    _PlacedProgramSpaces.Add(space);
-                                }
+                //                 if(rawUnion!= null)
+                //                 {
+                //                     var space = new SmSpace(_PlaceableSpaces[i].type, _PlaceableSpaces[i].roomNumber, true, _PlaceableSpaces[i].designArea, rawUnion);
+                //                     space.sorter = i;
+                //                     _PlacedProgramSpaces.Add(space);
+                //                 }
+                //             }
+                //             catch (Exception ex)
+                //             {
+                //                 Console.WriteLine(ex + slivs.ToString() + "Count: " + slivs.Count);
+                //             }
 
-                                // }
-                            }
-                            catch (Exception ex)
-                            {
-                                Console.WriteLine(ex + slivs.ToString() + "Count: " + slivs.Count);
-                            }
-
-                        }
-                        // else
-                        //{
-                        //   Console.WriteLine("slivs: " + slivs.ToString());
-                        //}
-                    }
+                //         }
+                //     }
 
 
-                }
+                // }
 
-                //ProcessPolygons(this._PlacedProgram, tempNames);
+                ProcessPolygons(_PlacedProgramSlivers, tempNames);
             }
         }
 
-        // public void TryStackBuilding(List<SmSpace> units, out List<string> outMess)
-        // {
-        //   outMess = new List<string>();
+/// <summary>
+/// Stacks rooms on building levels.
+/// </summary>
+/// <param name="units"></param>
+/// <param name="outMess"></param>
+        public void TryStackBuilding(List<SmSpace> units, out List<string> outMess)
+        {
+            outMess = new List<string>();
 
-        //   var sortedLvls = inLvls.OrderBy(l => l._elevation).ToList();
-        //   for (int i = 1; i < sortedLvls.Count; i++)//exclude first level
-        //   {
-        //     var boundaries = sortedLvls[i]._boundaries;
+            var sortedLvls = inLvls.OrderBy(l => l._elevation).ToList();
+            for (int i = 1; i < sortedLvls.Count; i++)//exclude first level
+            {
+                var boundaries = sortedLvls[i]._boundaries;
+                sortedLvls[i]._index = i;
+                for (int j = 0; j < boundaries.Count; j++)
+                {
 
-        //     for (int j = 0; j < boundaries.Count; j++)
-        //     {
+                    var mess = TryProject(units, boundaries[j].offsetPoly, boundaries[j].mainPoly, sortedLvls[i]);// ground floor units, various boundaries
+                    outMess.Add(mess.ToString());
+                }
 
-        //       var mess = TryProject(units, boundaries[j].offsetCrv, boundaries[j].mainCrv, sortedLvls[i]);// ground floor units, various boundaries
-        //       outMess.Add(mess.ToString());
-        //     }
+            }
 
-        //   }
+        }
 
-        // }
 
-        // public bool TryProject(List<SmSpace> firstLvlUnits, Curve offCrv, Curve mainCrv, SmLevel level)
-        // {
-        //   bool worked = false;
-        //   var workPlane = new Plane(new Vector3(0, 0, level._elevation), Vector3.ZAxis);
+/// <summary>
+///  Adds 'placed spaces' to PlacedSpaces list.
+/// </summary>
+/// <param name="firstLvlUnits"></param>
+/// <param name="offCrv"></param>
+/// <param name="mainCrv"></param>
+/// <param name="level"></param>
+/// <returns></returns>
+        public bool TryProject(List<SmSpace> firstLvlUnits, Polygon offCrv, Polygon mainCrv, SmLevel level)
+        {
+            bool worked = false;
 
-        //   for (int i = 0; i < firstLvlUnits.Count; i++)
-        //   {
-        //     var dupCrv = firstLvlUnits[i].curve.DuplicateCurve();
-        //     var movedCrv = Rhino.Geometry.Curve.ProjectToPlane(dupCrv, workPlane); // projecting ground units to variable levels
+            for (int i = 0; i < firstLvlUnits.Count; i++)
+            {
+                var dupCrv = new Polygon(firstLvlUnits[i].poly.Vertices);
 
-        //     Polyline poly;
-        //     if(movedCrv.TryGetPolyline(out poly))
-        //     {
-        //       //worked = true;
-        //       var segments = poly.Segments();
+                var movedCrv = dupCrv.TransformedPolygon(new Transform(new Vector3(0, 0, level._elevation)));
 
-        //       var pts = segments.Select(s => s.PointAt(0)).ToList(); // getting unit crv poly pts
-        //       string mess;
-        //       bool inBool = AllPtsIn(offCrv, pts, out mess);
+                var pts = movedCrv.Vertices.ToList(); // getting unit crv poly pts
+                string mess;
+                bool inBool = AllPtsIn(offCrv, pts, out mess);
 
-        //       if(inBool)
-        //       {
-        //         var unitN = new SmSpace(firstLvlUnits[i].roomNumber, firstLvlUnits[i].area);
-        //         unitN.poly = movedCrv;
-        //         PlacedSpaces.Add(unitN);
-        //         worked = true;
-        //       }
-        //       else if (inBool == false && mess == "trim")
-        //       {
-        //         Curve crvOut;
-        //         if(TrimKeep(mainCrv, movedCrv, out crvOut, level))
-        //         {
-        //           var unitN = new SmSpace(firstLvlUnits[i].roomNumber, firstLvlUnits[i].area);
-        //           unitN.poly = crvOut;
-        //           PlacedSpaces.Add(unitN);
-        //           worked = true;
-        //         }
-        //       }
-        //     }
-        //     else
-        //       continue;
-        //   }
+                int s = -1;
+                var newRmNum = firstLvlUnits[i].roomNumber.ToString().Remove(0, 1).Insert(0, level._index.ToString());
 
-        //   return worked;
+                int parsedRmNum;
+                if (Int32.TryParse(newRmNum, out parsedRmNum))
+                    s = parsedRmNum;
 
-        // }
 
-        // public bool TrimKeep(Curve trimCrv, Curve toTrim, out Curve crvOut, SmLevel level)
-        // {
-        //   bool trimmed = false;
-        //   var cutC = new List<Curve>();
-        //   cutC.Add(trimCrv);
-        //   var face = new Polygon(toTrim.ToPolyline().Vertices);
-        //   crvOut = toTrim;
+                if (inBool)
+                {
+                    var unitN = new SmSpace(firstLvlUnits[i].type, s, true, firstLvlUnits[i].designArea, movedCrv);
+                    unitN.roomLevel = level._index;
+                    unitN.roomHeight = level._elevation;
 
-        //   var faces = face.Split(cutC, 0.1).ToList();
+                    PlacedSpaces.Add(unitN);
+                    worked = true;
+                }
+                else if (inBool == false && mess == "trim")
+                {
+                    Polygon crvOut;
+                    if (TrimKeep(mainCrv, movedCrv, level, out crvOut))
+                    {
+                        var unitN = new SmSpace(firstLvlUnits[i].type, s, true, firstLvlUnits[i].designArea, crvOut);
+                        unitN.roomLevel = level._index;
+                        unitN.roomHeight = level._elevation;
+                        PlacedSpaces.Add(unitN);
+                        worked = true;
+                    }
+                }
+            }
 
-        //   Plane workPlane = new Plane(new Vector3(0, 0, level._elevation), Vector3.ZAxis);
+            return worked;
 
-        //   for (int i = 0; i < faces.Count; i++)
-        //   {
-        //     if(new Polygon(trimCrv.ToPolyline().Vertices).Contains(faces[i]))
-        //     {
-        //       var nakedCrvs = faces[i].DuplicateNakedEdgeCurves(true, false);
-        //       crvOut = Curve.JoinCurves(nakedCrvs)[0];
-        //       return true;
-        //     }
+        }
 
-        //   }
+        Polygon ReturnInsidePoly(List<Polygon> candidates, Polygon arbiter)
+        {
+            Polygon empty = null;
+            for (int i = 0; i < candidates.Count; i++)
+            {
+                if (arbiter.Contains(candidates[i].Centroid()))
+                    return candidates[i];
+            }
+            return empty;
+        }
 
-        //   return trimmed;
-        // }
+        public bool TrimKeep(Polygon trimCrv, Polygon toTrim, SmLevel level, out Polygon crvOut)
+        {
+            bool trimmed = false;
+            crvOut = null;
+
+            var diffResults = toTrim.Difference(trimCrv);
+
+            var findInsidePoly = ReturnInsidePoly(diffResults.ToList(), trimCrv);
+
+            if (findInsidePoly != null)
+            {
+                trimmed = true;
+                crvOut = findInsidePoly;
+            }
+
+            return trimmed;
+        }
 
 
         public bool AllPtsIn(Curve curve, List<Vector3> pts, out string message)
@@ -782,26 +785,34 @@ namespace MJProceduralApartmentPlacer
         {
 
             _ProcessedProgram = new Dictionary<int, SmSpace>();
+            //SmSpace[] initSpaces = new SmSpace[PolygonTree.Keys.Count()];
 
-            SmSpace[] initSpaces = new SmSpace[PolygonTree.Keys.Count()];
-            // int[] indices = Enumerable.Range(0, initSpaces.Length).ToArray();
-            //System.Threading.Tasks.Parallel.ForEach(indices, (index) => 
             for (int i = 0; i < PolygonTree.Keys.Count; i++)
             {
                 if (PolygonTree.TryGetValue(i, out var branchSpaces))
                 {
-                    var branchPolygons = branchSpaces.Select(s => s._poly).ToList(); ;
-                    var mergedPolygon = Polygon.UnionAll(branchPolygons)[0];
-                    initSpaces[i] = new SmSpace(int.Parse(spaceNames[i]), Math.Abs(mergedPolygon.Area()));
-                    initSpaces[i].poly = mergedPolygon;
 
-                    _ProcessedProgram.Add(i, initSpaces[i]);
+                    if (branchSpaces != null && branchSpaces.Count > 0)
+                    {
+                        var branchPolygons = branchSpaces.Select(s => s._poly).ToList();
+                        var rawUnion = Polygon.UnionAll(branchPolygons)[0];
+
+                        if (rawUnion != null)
+                        {
+                            var space = new SmSpace(_PlaceableSpaces[i].type, _PlaceableSpaces[i].roomNumber, true, _PlaceableSpaces[i].designArea, rawUnion);
+                            space.roomLevel = 0;
+                            space.roomHeight = 0.0;
+                            //initSpaces[i] = new SmSpace(int.Parse(spaceNames[i]), Math.Abs(rawUnion.Area()));
+                            space.sorter = i;
+                            _ProcessedProgram.Add(i, space);
+                        }
+                    }
+
                 }
             }
-            // });
 
             PlacedSpaces = new List<SmSpace>();
-            PlacedSpaces.AddRange(initSpaces.OrderBy(o => o.roomNumber).ToList());
+            PlacedSpaces.AddRange(_ProcessedProgram.Values.ToList());
         }
     }
 }
