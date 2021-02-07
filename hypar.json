@@ -131,10 +131,19 @@
         "multipleOf": 0.01,
         "default": 0.54,
         "maximum": 1,
-        "description": "Parameter that can be adjusted for apartment stack placement.",
+        "description": "Parameter that can be adjusted for apartment stack placement (2d).",
         "type": "number",
         "$hyparOrder": 4,
         "minimum": 0
+      },
+       "UnitShuffle": {
+        "multipleOf": 0.01,
+        "default": 0.54,
+        "maximum": 1.0,
+        "description": "Parameter that can be adjusted for shuffling the order of the aparment stack (2d).",
+        "type": "number",
+        "$hyparOrder": 4,
+        "minimum": 0.0
       },
       "CorePolygons": {
         "description": "Core polygons around which apartments should be placed.",
@@ -152,12 +161,12 @@
       },
       "CellSize": {
         "multipleOf": 0.1,
-        "default": 15,
+        "default": 18,
         "maximum": 20,
         "description": "CellSize from MJ_ProceduralMass ",
         "type": "number",
         "$hyparOrder": 0,
-        "minimum": 6
+        "minimum": 15
       }
     }
   },
