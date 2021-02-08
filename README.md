@@ -19,3 +19,6 @@ Places an apartment mix in a procedurally generated mass.
 |Units Placed|Number|Apartment units placed.|
 |Units Remaining|Number|Apartment units remaining/ not placed.|
 
+### Hypar Workflow Sample: 
+[![IMAGE ALT TEXT HERE](https://hypar.io/workflows/0c29a4f5-4e8e-4f55-8101-14eafb8a2c8e)
+
