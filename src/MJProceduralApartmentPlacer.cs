@@ -116,9 +116,9 @@ namespace MJProceduralApartmentPlacer
 
             for (int i = 0; i < placedSpaces.Count; i++)
             {
-                var representation = new Representation(new SolidOperation[] { new Extrude(placedSpaces[i].poly.Offset(-0.15)[0], placedSpaces[i].roomLevel._levelHeightToNext-0.15, Vector3.ZAxis, false) });
+                var representation = new Representation(new SolidOperation[] { new Extrude(placedSpaces[i].poly.Offset(-0.15)[0], placedSpaces[i].roomLevel._levelHeightToNext-0.25, Vector3.ZAxis, false) });
 
-                var room = new Room(placedSpaces[i].poly.Offset(-0.15)[0], Vector3.ZAxis, $"Unit {placedSpaces[i].roomNumber}", $"{placedSpaces[i].roomNumber}", $"Type {placedSpaces[i].type}", $"{placedSpaces[i].roomNumber}", placedSpaces[i].designArea, 1.0, 0.0, placedSpaces[i].roomLevel._index.ToString(), placedSpaces[i].roomLevel._elevation, placedSpaces[i].roomLevel._levelHeightToNext - 0.15, placedSpaces[i].area, new Transform(0, 0, placedSpaces[i].roomLevel._elevation), materials[placedSpaces[i].type], representation, false, Guid.NewGuid(), "");
+                var room = new Room(placedSpaces[i].poly.Offset(-0.15)[0], Vector3.ZAxis, $"Unit {placedSpaces[i].roomNumber}", $"{placedSpaces[i].roomNumber}", $"Type {placedSpaces[i].type}", $"{placedSpaces[i].roomNumber}", placedSpaces[i].designArea, 1.0, 0.0, placedSpaces[i].roomLevel._index.ToString(), placedSpaces[i].roomLevel._elevation, placedSpaces[i].roomLevel._levelHeightToNext - 0.25, placedSpaces[i].area, new Transform(0, 0, placedSpaces[i].roomLevel._elevation), materials[placedSpaces[i].type], representation, false, Guid.NewGuid(), "");
 
                 output.Model.AddElement(room);
             }
