@@ -9,7 +9,6 @@ Places an apartment mix in a procedurally generated mass.
 |Unit Mix|object||
 |Seam|number|Parameter that can be adjusted for apartment stack placement (2d).|
 |CorePolygons|array|Core polygons around which apartments should be placed.|
-|CellSize|number|CellSize from MJ_ProceduralMass |
 
 
 <br>

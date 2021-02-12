@@ -59,6 +59,7 @@ namespace MJProceduralApartmentPlacer
         public List<string> _debugger;
 
         public List<Polygon> coreCrvs;
+        public Polygon boundary;
         public List<Vector3> tPoints;
 
         private double _worldScale = 1.0;
@@ -87,7 +88,10 @@ namespace MJProceduralApartmentPlacer
 
             firstLevel = inLvls.OrderBy(l => l._elevation).ToList()[0];
             firstLevel._index = 0;
-            var boundary = firstLevel._boundaries[0].mainPoly;
+            boundary = firstLevel._boundaries[0].mainPoly;
+
+            //    System.IO.File.WriteAllText( "D:/Hypar/offsetTest.json", Newtonsoft.Json.JsonConvert.SerializeObject(boundary));
+
             // var orientation = boundary.ClosedCurveOrientation(Vector3d.ZAxis);
             var ssspaces = SmSpace.Jitter(spaces, 0.99).ToList();
 

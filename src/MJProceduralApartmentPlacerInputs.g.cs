@@ -28,19 +28,18 @@ namespace MJProceduralApartmentPlacer
     {
         [Newtonsoft.Json.JsonConstructor]
         
-        public MJProceduralApartmentPlacerInputs(UnitMix @unitMix, double @seam, IList<Polygon> @corePolygons, double @cellSize, string bucketName, string uploadsBucket, Dictionary<string, string> modelInputKeys, string gltfKey, string elementsKey, string ifcKey):
+        public MJProceduralApartmentPlacerInputs(UnitMix @unitMix, double @seam, IList<Polygon> @corePolygons, string bucketName, string uploadsBucket, Dictionary<string, string> modelInputKeys, string gltfKey, string elementsKey, string ifcKey):
         base(bucketName, uploadsBucket, modelInputKeys, gltfKey, elementsKey, ifcKey)
         {
             var validator = Validator.Instance.GetFirstValidatorForType<MJProceduralApartmentPlacerInputs>();
             if(validator != null)
             {
-                validator.PreConstruct(new object[]{ @unitMix, @seam, @corePolygons, @cellSize});
+                validator.PreConstruct(new object[]{ @unitMix, @seam, @corePolygons});
             }
         
             this.UnitMix = @unitMix;
             this.Seam = @seam;
             this.CorePolygons = @corePolygons;
-            this.CellSize = @cellSize;
         
             if(validator != null)
             {
@@ -59,11 +58,6 @@ namespace MJProceduralApartmentPlacer
         /// <summary>Core polygons around which apartments should be placed.</summary>
         [Newtonsoft.Json.JsonProperty("CorePolygons", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public IList<Polygon> CorePolygons { get; set; }
-    
-        /// <summary>CellSize from MJ_ProceduralMass </summary>
-        [Newtonsoft.Json.JsonProperty("CellSize", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        [System.ComponentModel.DataAnnotations.Range(8D, 15D)]
-        public double CellSize { get; set; } = 10D;
     
     
     }

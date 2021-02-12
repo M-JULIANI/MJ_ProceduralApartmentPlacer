@@ -2,6 +2,7 @@ using Elements;
 using Elements.Geometry;
 using Elements.Geometry.Profiles;
 using Elements.Geometry.Solids;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,9 +21,11 @@ namespace MJProceduralApartmentPlacer
         {
             if (!inputModels.TryGetValue("Floors", out var levelsModel)) { throw new Exception("No floors created. Please create those first."); }
 
-            // if(!inputModels.TryGetValue("MJ_ProceduralMass", out var cellSizeModel)){throw new Exception("No 'CellSize' received from MJProceduralMassing, please make sure you use that function to create an envelope .");}
+            if (!inputModels.TryGetValue("Envelope", out var envelopesss)) { throw new Exception("No envelopes available. Please make sure MJ_ProceduralMass is outputting envelopes."); }
 
-            //var cellSize = cellSizeModel.AllElementsOfType<double>().First();
+            var proceduralMassData = envelopesss.AllElementsOfType<ProceduralMassData>().ToArray()[0];
+
+            var proceduralCellSize = proceduralMassData.CellSize;
 
             //debuggin/ viz things
             List<ModelCurve> sketches = new List<ModelCurve>();
@@ -69,7 +72,9 @@ namespace MJProceduralApartmentPlacer
 
             try
             {
-                engine = new PlacementEngine(allUnitsPreplaced, (input.CellSize - 2.0) * 0.5, _levels, 0.5, input.CorePolygons);
+                engine = new PlacementEngine(allUnitsPreplaced, (proceduralCellSize - 2.0) * 0.5, _levels, 0.5, input.CorePolygons);
+
+                Console.WriteLine("cell size: " + proceduralCellSize);
 
                 var wallCrvs = engine._Walls.Select(s => new ModelCurve(s._curve)).ToList();
 
@@ -80,7 +85,11 @@ namespace MJProceduralApartmentPlacer
 
                 string feedbackString = "No feedback yet...";
 
+               
+
                 engine.RunFirstFloor(input.Seam, out feedbackString);
+
+                
 
                 // for (int i = 0; i < engine._Slivers.Length; i++)
                 // {

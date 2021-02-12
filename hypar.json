@@ -9,6 +9,11 @@
       "autohide": false,
       "name": "Floors",
       "optional": false
+    },
+    {
+      "autohide": false,
+      "name": "Envelope",
+      "optional": false
     }
   ],
   "input_schema": {
@@ -149,15 +154,6 @@
           "type": "object",
           "$ref": "https://hypar.io/Schemas/Geometry/Polygon.json"
         }
-      },
-      "CellSize": {
-        "multipleOf": 0.1,
-        "default": 10,
-        "maximum": 15,
-        "description": "CellSize from MJ_ProceduralMass ",
-        "type": "number",
-        "$hyparOrder": 0,
-        "minimum": 8
       }
     }
   },
@@ -178,7 +174,8 @@
   "element_types": [
     "https://prod-api.hypar.io/schemas/Envelope",
     "https://raw.githubusercontent.com/hypar-io/Schemas/master/Room.json",
-    "https://prod-api.hypar.io/schemas/ProgramType"
+    "https://prod-api.hypar.io/schemas/ProgramType", 
+    "https://prod-api.hypar.io/schemas/ProceduralMassData"
   ],
   "repository_url": "",
   "source_file_key": null,
