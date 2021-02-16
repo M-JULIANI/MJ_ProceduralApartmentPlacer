@@ -779,12 +779,18 @@ namespace MJProceduralApartmentPlacer
                             var branchPolygons = branchSpaces.Select(s => s._poly).ToList();
                             var rawUnion = Polygon.UnionAll(branchPolygons)[0];
 
+                            
+
                             if (rawUnion != null)
                             {
+
+                                if(Math.Abs(rawUnion.Area())/_PlaceableSpaces[i].designArea>= 0.25)
+                                {
                                 var space = new SmSpace(_PlaceableSpaces[i].type, _PlaceableSpaces[i].roomNumber, true, _PlaceableSpaces[i].designArea, rawUnion);
                                 space.roomLevel = firstLevel;
                                 space.sorter = i;
                                 _ProcessedProgram.Add(i, space);
+                                }
                             }
                         }
 
