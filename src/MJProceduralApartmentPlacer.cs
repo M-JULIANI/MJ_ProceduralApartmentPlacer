@@ -28,11 +28,7 @@ namespace MJProceduralApartmentPlacer
             var proceduralCellSize = proceduralMassData.CellSize;
 
             //debuggin/ viz things
-            List<ModelCurve> sketches = new List<ModelCurve>();
             List<ModelCurve> coreSketch = new List<ModelCurve>();
-            List<ModelCurve> subSpaceSketch = new List<ModelCurve>();
-            //List<SmSlivers> sliverSketch = new List<SmSlivers>();
-            List<Polygon> outROomSlivs = new List<Polygon>();
 
             List<SmSpace> placedSpaces = new List<SmSpace>();
             List<SmLevel> _levels = new List<SmLevel>();
@@ -72,7 +68,7 @@ namespace MJProceduralApartmentPlacer
 
             try
             {
-                engine = new PlacementEngine(allUnitsPreplaced, (proceduralCellSize - 2.0) * 0.5, _levels, 0.5, input.CorePolygons);
+                engine = new PlacementEngine(allUnitsPreplaced, (proceduralCellSize - 2.0) * 0.5, _levels, 1.0, input.CorePolygons);
 
                 Console.WriteLine("cell size: " + proceduralCellSize);
 
@@ -80,7 +76,6 @@ namespace MJProceduralApartmentPlacer
 
                 var coreCrvs = engine.coreLinesViz.Select(s => new ModelCurve(s._curve)).ToList();
 
-                //sketches.AddRange(wallCrvs);
                 coreSketch.AddRange(coreCrvs);
 
                 string feedbackString = "No feedback yet...";
@@ -89,14 +84,6 @@ namespace MJProceduralApartmentPlacer
 
                 engine.RunFirstFloor(input.Seam, out feedbackString);
 
-                
-
-                // for (int i = 0; i < engine._Slivers.Length; i++)
-                // {
-                //     foreach (var s in engine._Slivers[i])
-                //         sliverSketch.Add(s);
-                // }
-               // engine.semiSlivers.ToList().ForEach(s => subSpaceSketch.Add(s));
                 Console.WriteLine($"Main feedback: {feedbackString}");
 
                List<string> debugStack;
@@ -131,50 +118,7 @@ namespace MJProceduralApartmentPlacer
 
                 output.Model.AddElement(room);
             }
-            //    for (int i = 0; i < placedSpaces.Count; i++)
-            // {
-            //     var representation = new Representation(new SolidOperation[] { new Extrude(placedSpaces[i].poly.Offset(-0.15)[0], 2.0, Vector3.ZAxis, false) });
-
-            //     var room = new Room(placedSpaces[i].poly.Offset(-0.15)[0], Vector3.ZAxis, $"Unit {placedSpaces[i].roomNumber}", $"{placedSpaces[i].roomNumber}", $"Type {placedSpaces[i].type}", $"{placedSpaces[i].roomNumber}", placedSpaces[i].designArea, 1.0, 0.0, placedSpaces[i].roomLevel._index.ToString(), 0.0, 2.0, placedSpaces[i].area, new Transform(0, 0, placedSpaces[i].poly.Centroid().Z), materials[placedSpaces[i].type], representation, false, Guid.NewGuid(), "");
-
-            //     output.Model.AddElement(room);
-            // }
-
-
-
-
-            // for(int i=0; i< sliverSketch.Count; i++)
-            // {
-            // var representation = new Representation(new SolidOperation[] { new Extrude(sliverSketch[i]._poly, 2.0, Vector3.ZAxis, false) });
-
-            //   var room = new Room(sliverSketch[i]._poly, Vector3.ZAxis, $"Unit {sliverSketch[i]._stIndex}", $"{sliverSketch[i]._stIndex}", $"Type {sliverSketch[i]._stIndex}", sliverSketch[i]._stIndex.ToString(), 10, 1.0, 0.0, 0, 2.0, 0, new Transform(0,0, 0), materials[0], representation, false, Guid.NewGuid(), "");
-
-            //   output.Model.AddElement(room);
-            // }    
-
-            //output.Model.AddElements(sketches);
             output.Model.AddElements(coreSketch);
-            /// output.Model.AddElements(subSpaceSketch);
-            //output.Model.AddElements(sliverSketch);
-
-            // Console.WriteLine("sliver count is: "+ engine._SubSpaces.Length.ToString());
-
-
-
-            //  foreach(var s in engine._Slivers[0])
-            //   output.Model.AddElement(new ModelCurve(s));
-
-
-
-
-            // var profile = WideFlangeProfileServer.Instance.GetProfileByType(WideFlangeProfileType.W10x100);
-            // var pp = 1;
-            //             foreach(var p in engine.startPts)
-            //             {
-            //               output.Model.AddElement(new Column(p, 2.0 * pp, profile, BuiltInMaterials.Steel));
-            //               pp++;
-            //             }
-
 
             return output;
         }

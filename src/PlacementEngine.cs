@@ -29,9 +29,7 @@ namespace MJProceduralApartmentPlacer
         Polygon _Core;
         public Polyline _BoundaryCurve;
         Polyline _boundaryPoly;
-        public Polygon _SortingCurve;
         public IList<Polygon> _MainFace;
-        public Polygon[] _QuadAreas;
         public Polygon[] _SubSpaces;
         public List<Polygon> semiSlivers;
         public List<SmSlivers>[] _Slivers;
@@ -47,7 +45,6 @@ namespace MJProceduralApartmentPlacer
         double _leaseOffset;
         double medOffset;
 
-        public List<Curve> _Inters = new List<Curve>();
         private List<SmLevel> inLvls;
         private SmLevel firstLevel;
 
@@ -56,11 +53,8 @@ namespace MJProceduralApartmentPlacer
         public List<SmSpace> FirstFloorSpaces;
         public List<SmSpace> _PlaceableSpaces;
 
-        public List<string> _debugger;
-
         public List<Polygon> coreCrvs;
         public Polygon boundary;
-        public List<Vector3> tPoints;
 
         private double _worldScale = 1.0;
 
@@ -78,12 +72,13 @@ namespace MJProceduralApartmentPlacer
 
             coreCrvs = new List<Polygon>();
 
-            if(corePolys!= null){
-            foreach (var p in corePolys)
+            if (corePolys != null)
             {
-                var c = p;
-                coreCrvs.Add(c);
-            }
+                foreach (var p in corePolys)
+                {
+                    var c = p;
+                    coreCrvs.Add(c);
+                }
             }
 
             firstLevel = inLvls.OrderBy(l => l._elevation).ToList()[0];
@@ -106,28 +101,16 @@ namespace MJProceduralApartmentPlacer
 
             Console.WriteLine(boundary.ToString());
 
-            // if(!boundary.IsClockWise())
-            //     boundary.Reversed();
             _Core = InitCoreCrv(boundary);
-           // _Core = boundary.Offset(-5.0, EndType.ClosedPolygon)[0];
-
-            _SortingCurve = InitSortingCrv(boundary);
-
 
             _SplitInterval = splitInterval;
             _GlobalIndex = 0;
 
-            // var crvs = new List<Polygon>();
-            // crvs.Add(new Polygon(_BoundaryCurve.Vertices));
-            // crvs.Add(new Polygon(_Core.Vertices));
             _MainFace = boundary.Difference(_Core);
 
-            //InitSpaces();
             InitWalls();
 
             _PlacedProgramSpaces = new List<SmSpace>();
-            // InitSubSpaces(0.5, corePolys);
-
         }
 
         public Polygon InitSortingCrv(Polygon boundarypoly)
@@ -177,92 +160,55 @@ namespace MJProceduralApartmentPlacer
                 for (int i = 0; i < _PlacedProgramSlivers.Keys.Count(); i++)
                     tempNames.Add(_spaces[i]);
 
-                // semiSlivers = new List<Polygon>();
-                // for (int i = 0; i < _PlacedProgramSlivers.Keys.Count(); i++)
-                // {
-                //     List<SmSlivers> slivs;
-                //     if (_PlacedProgramSlivers.TryGetValue(i, out slivs))
-                //     {
-
-                //         if (slivs != null && slivs.Count > 0)
-                //         {
-                //             try
-                //             {
-                //                 var polys = slivs.Select(s => s._poly).ToList();
-                //                 var profiles = polys.Select(s => new Profile(s));
-                //                 var rawUnion = Polygon.UnionAll(polys)[0];
-
-
-                //                 if(rawUnion!= null)
-                //                 {
-                //                     var space = new SmSpace(_PlaceableSpaces[i].type, _PlaceableSpaces[i].roomNumber, true, _PlaceableSpaces[i].designArea, rawUnion);
-                //                     space.sorter = i;
-                //                     _PlacedProgramSpaces.Add(space);
-                //                 }
-                //             }
-                //             catch (Exception ex)
-                //             {
-                //                 Console.WriteLine(ex + slivs.ToString() + "Count: " + slivs.Count);
-                //             }
-
-                //         }
-                //     }
-
-
-                // }
-
                 ProcessPolygons(_PlacedProgramSlivers, tempNames);
             }
         }
 
-/// <summary>
-/// Stacks rooms on building levels.
-/// </summary>
-/// <param name="units"></param>
-/// <param name="outMess"></param>
+        /// <summary>
+        /// Stacks rooms on building levels.
+        /// </summary>
+        /// <param name="units"></param>
+        /// <param name="outMess"></param>
         public void TryStackBuilding(out List<string> outMess)
         {
             outMess = new List<string>();
             PlacedSpaces = new List<SmSpace>();
 
             var sortedLvls = inLvls.OrderBy(l => l._elevation).ToList();
-        
+
             for (int i = 0; i < sortedLvls.Count; i++)//exclude first level
             {
                 var lvlHeightToNext = 2.0;
-                
-                if(i!= sortedLvls.Count-1)
-                {
-                    lvlHeightToNext = sortedLvls[i+1]._elevation -  sortedLvls[i]._elevation;
 
-                    var boundaries = sortedLvls[i+1]._boundaries;
+                if (i != sortedLvls.Count - 1)
+                {
+                    lvlHeightToNext = sortedLvls[i + 1]._elevation - sortedLvls[i]._elevation;
+
+                    var boundaries = sortedLvls[i + 1]._boundaries;
                     sortedLvls[i]._index = i;
                     sortedLvls[i]._levelHeightToNext = lvlHeightToNext;
 
                     for (int j = 0; j < boundaries.Count; j++)
                     {
 
-                        var transformedOffset = boundaries[j].offsetPoly.TransformedPolygon(new Transform(0,0, sortedLvls[i]._elevation));
-                        var transformedMain = boundaries[j].mainPoly.TransformedPolygon(new Transform(0,0, sortedLvls[i]._elevation));
+                        var transformedOffset = boundaries[j].offsetPoly.TransformedPolygon(new Transform(0, 0, sortedLvls[i]._elevation));
+                        var transformedMain = boundaries[j].mainPoly.TransformedPolygon(new Transform(0, 0, sortedLvls[i]._elevation));
 
                         var mess = TryProject(FirstFloorSpaces, transformedOffset, transformedMain, sortedLvls[i]);// ground floor units, various boundaries
                         outMess.Add(mess.ToString());
                     }
                 }
-
             }
-
         }
 
-
-/// <summary>
-///  Adds 'placed spaces' to PlacedSpaces list.
-/// </summary>
-/// <param name="firstLvlUnits"></param>
-/// <param name="offCrv"></param>
-/// <param name="mainCrv"></param>
-/// <param name="level"></param>
-/// <returns></returns>
+        /// <summary>
+        ///  Adds 'placed spaces' to PlacedSpaces list.
+        /// </summary>
+        /// <param name="firstLvlUnits"></param>
+        /// <param name="offCrv"></param>
+        /// <param name="mainCrv"></param>
+        /// <param name="level"></param>
+        /// <returns></returns>
         public bool TryProject(List<SmSpace> firstLvlUnits, Polygon offCrv, Polygon mainCrv, SmLevel level)
         {
             bool worked = false;
@@ -270,7 +216,7 @@ namespace MJProceduralApartmentPlacer
             for (int i = 0; i < firstLvlUnits.Count; i++)
             {
                 var dupCrv = new Polygon(firstLvlUnits[i].poly.Vertices);
-                
+
                 var movedCrv = dupCrv.TransformedPolygon(new Transform(new Vector3(0, 0, offCrv.Centroid().Z)));
 
                 var pts = movedCrv.Vertices.ToList(); // getting unit crv poly pts
@@ -296,10 +242,17 @@ namespace MJProceduralApartmentPlacer
                     Polygon crvOut;
                     if (TrimKeep(mainCrv, movedCrv, level, out crvOut))
                     {
-                        var unitN = new SmSpace(firstLvlUnits[i].type, s, true, firstLvlUnits[i].designArea, crvOut);
-                        unitN.roomLevel = level;
-                        PlacedSpaces.Add(unitN);
-                        worked = true;
+                        var designArea = firstLvlUnits[i].designArea;
+
+                        var areaDiff = Math.Abs(designArea - crvOut.Area());
+                        if(areaDiff<= _leaseOffset * _SplitInterval)
+                        //if ((areaDiff / designArea) >= 0.75)
+                        {
+                            var unitN = new SmSpace(firstLvlUnits[i].type, s, true, firstLvlUnits[i].designArea, crvOut);
+                            unitN.roomLevel = level;
+                            PlacedSpaces.Add(unitN);
+                            worked = true;
+                        }
                     }
                 }
             }
@@ -310,6 +263,8 @@ namespace MJProceduralApartmentPlacer
 
         Polygon ReturnInsidePoly(List<Polygon> candidates, Polygon arbiter)
         {
+            if (candidates == null || arbiter == null)
+                return null;
             Polygon empty = null;
             for (int i = 0; i < candidates.Count; i++)
             {
@@ -325,6 +280,9 @@ namespace MJProceduralApartmentPlacer
             crvOut = null;
 
             var diffResults = toTrim.Intersection(trimCrv);
+
+            if (diffResults == null)
+                return false;
 
             var findInsidePoly = ReturnInsidePoly(diffResults.ToList(), trimCrv);
 
@@ -347,8 +305,8 @@ namespace MJProceduralApartmentPlacer
 
             for (int i = 0; i < pts.Count; i++)
                 if (curve.Contains(pts[i], out var contaimment))
-                if(contaimment ==Containment.Inside)
-                    countIn++;
+                    if (contaimment == Containment.Inside)
+                        countIn++;
 
             if (countIn == 0)
                 allIn = false;
@@ -370,7 +328,7 @@ namespace MJProceduralApartmentPlacer
             var areaAccumulated = 0.0;
             report = "Placeholder!";
 
-            double threshold = _leaseOffset * 0.5;
+            double threshold = _leaseOffset * _SplitInterval;
             //if(!inRevit)
             threshold *= (_worldScale * _worldScale);
 
@@ -626,8 +584,6 @@ namespace MJProceduralApartmentPlacer
             indecesforPurgin = new List<int>();
             int pIntOffset = 0;
 
-            double moduleSliver = 0.5;
-
             double crvLength = 0.0;
             List<Line> splitLines = new List<Line>();
             Line ln;
@@ -637,7 +593,7 @@ namespace MJProceduralApartmentPlacer
             for (int w = 0; w < _Walls.Length; w++)
             {
                 crvLength = _Walls[w]._curve.Length();
-                var numSlivers = (int)Math.Floor(crvLength / moduleSliver);
+                var numSlivers = (int)Math.Floor(crvLength / _SplitInterval);
 
 
                 ln = new Line(_Walls[w]._curve.PointAt(0.0), _Walls[w]._curve.PointAt(1.0));
@@ -728,7 +684,7 @@ namespace MJProceduralApartmentPlacer
             for (int w = 0; w < _Walls.Length; w++)
             {
                 ln = new Line(_Walls[w]._curve.PointAt(0.0), _Walls[w]._curve.PointAt(1.0));
-                splitLines = ln.DivideByLength(moduleSliver, false);
+                splitLines = ln.DivideByLength(_SplitInterval, false);
 
                 var tempList = new List<SmSlivers>();
 
@@ -770,7 +726,7 @@ namespace MJProceduralApartmentPlacer
 
                 for (int s = 6; s >= 0; s--)
                 {
-                    var subIndex = sfCount - 1 - s;
+                    var subIndex = sfCount - s;
                     var subModIndex = pIntOffset + subIndex;
                     if (!PIndexes.Contains(subModIndex))
                         PIndexes.Add(subModIndex);
@@ -810,39 +766,32 @@ namespace MJProceduralApartmentPlacer
             _ProcessedProgram = new Dictionary<int, SmSpace>();
             //SmSpace[] initSpaces = new SmSpace[PolygonTree.Keys.Count()];
 
-            try{
-
-            for (int i = 0; i < PolygonTree.Keys.Count; i++)
+            try
             {
-                if (PolygonTree.TryGetValue(i, out var branchSpaces))
+
+                for (int i = 0; i < PolygonTree.Keys.Count; i++)
                 {
-
-                    if (branchSpaces != null && branchSpaces.Count > 0)
+                    if (PolygonTree.TryGetValue(i, out var branchSpaces))
                     {
-                        var branchPolygons = branchSpaces.Select(s => s._poly).ToList();
-                        var rawUnion = Polygon.UnionAll(branchPolygons)[0];
 
-                    //    foreach(var p in branchPolygons)
-                    //     {
-                    //          var space = new SmSpace(_PlaceableSpaces[i].type, _PlaceableSpaces[i].roomNumber, true, _PlaceableSpaces[i].designArea, branchPolygons[0]);
-                    //         space.roomLevel = firstLevel;
-                    //         space.sorter = i;
-                    //         _ProcessedProgram.Add(i, space);
-                    //     }
-
-                        if (rawUnion != null)
+                        if (branchSpaces != null && branchSpaces.Count > 0)
                         {
-                            var space = new SmSpace(_PlaceableSpaces[i].type, _PlaceableSpaces[i].roomNumber, true, _PlaceableSpaces[i].designArea, rawUnion);
-                            space.roomLevel = firstLevel;
-                            space.sorter = i;
-                            _ProcessedProgram.Add(i, space);
-                        }
-                    }
+                            var branchPolygons = branchSpaces.Select(s => s._poly).ToList();
+                            var rawUnion = Polygon.UnionAll(branchPolygons)[0];
 
+                            if (rawUnion != null)
+                            {
+                                var space = new SmSpace(_PlaceableSpaces[i].type, _PlaceableSpaces[i].roomNumber, true, _PlaceableSpaces[i].designArea, rawUnion);
+                                space.roomLevel = firstLevel;
+                                space.sorter = i;
+                                _ProcessedProgram.Add(i, space);
+                            }
+                        }
+
+                    }
                 }
             }
-            }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Console.WriteLine(e.ToString());
             }
