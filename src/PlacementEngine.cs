@@ -52,6 +52,8 @@ namespace MJProceduralApartmentPlacer
         public List<SmSpace> PlacedSpaces;
         public List<SmSpace> FirstFloorSpaces;
         public List<SmSpace> _PlaceableSpaces;
+        List<SmSpace> distinctSpaces;
+
 
         public List<Polygon> coreCrvs;
         public Polygon boundary;
@@ -89,6 +91,8 @@ namespace MJProceduralApartmentPlacer
 
             // var orientation = boundary.ClosedCurveOrientation(Vector3d.ZAxis);
             var ssspaces = SmSpace.Jitter(spaces, 0.99).ToList();
+
+            distinctSpaces = ssspaces.GroupBy(x => x.type).Select(y => y.First()).ToList();
 
             _areas = ssspaces.OrderBy(s => s.sorter).Select(s => s.designArea).ToList();
             _spaces = ssspaces.OrderBy(s => s.sorter).Select(s => s.roomNumber.ToString()).ToList();
@@ -153,7 +157,7 @@ namespace MJProceduralApartmentPlacer
                 {
                     string thing = "";
                     TryPlace(_PlaceableSpaces[i], i, stSubs, out thing);
-                    Console.WriteLine(i.ToString() + " " + thing);
+                    // Console.WriteLine(i.ToString() + " " + thing);
                 }
 
                 List<string> tempNames = new List<string>();
@@ -244,21 +248,31 @@ namespace MJProceduralApartmentPlacer
                     {
                         var designArea = firstLvlUnits[i].designArea;
 
-                        var areaDiff = Math.Abs(designArea - crvOut.Area());
-                        if(areaDiff<= _leaseOffset * _SplitInterval)
-                        //if ((areaDiff / designArea) >= 0.75)
+
+                        if (Math.Abs(crvOut.Area() / designArea) >= 0.75)
                         {
                             var unitN = new SmSpace(firstLvlUnits[i].type, s, true, firstLvlUnits[i].designArea, crvOut);
                             unitN.roomLevel = level;
                             PlacedSpaces.Add(unitN);
                             worked = true;
                         }
+                        else //try finding a closest best unit fit
+                        {
+                            var closestDistinctUnit = FindClosestUnitType(crvOut, distinctSpaces);
+
+                            if (Math.Abs(crvOut.Area() / closestDistinctUnit.designArea) >= 0.75)
+                            {
+                                var unitN = new SmSpace(closestDistinctUnit.type, s, true, closestDistinctUnit.designArea, crvOut);
+                                unitN.roomLevel = level;
+                                PlacedSpaces.Add(unitN);
+                                worked = true;
+                            }
+                        }
+
                     }
                 }
             }
-
             return worked;
-
         }
 
         Polygon ReturnInsidePoly(List<Polygon> candidates, Polygon arbiter)
@@ -272,6 +286,14 @@ namespace MJProceduralApartmentPlacer
                     return candidates[i];
             }
             return empty;
+        }
+
+        public SmSpace FindClosestUnitType(Polygon poly, List<SmSpace> distinctSpaces)
+        {
+            if (poly != null && distinctSpaces != null)
+                return distinctSpaces.OrderBy(s => Math.Abs(s.designArea - poly.Area())).First();
+
+            return null;
         }
 
         public bool TrimKeep(Polygon trimCrv, Polygon toTrim, SmLevel level, out Polygon crvOut)
@@ -324,6 +346,9 @@ namespace MJProceduralApartmentPlacer
 
         public void TryPlace(SmSpace space, int spaceIndex, List<SmSlivers> stSubs, out string report)
         {
+            //Console.WriteLine("TOTAL SLIVER COUNT: "+ semiSlivers.Count);
+            //Console.WriteLine("TOTAL stubs: "+ stSubs.Count);
+
             bool Placed = false;
             var areaAccumulated = 0.0;
             report = "Placeholder!";
@@ -334,17 +359,23 @@ namespace MJProceduralApartmentPlacer
 
             while (Placed == false)
             {
-
-                Console.WriteLine($"index: {spaceIndex}, areaAccum: {areaAccumulated}");
+                if (_GlobalIndex >= semiSlivers.Count - 1)
+                    break;
+                //Console.WriteLine("current GLOBAL: " + _GlobalIndex);
+                //Console.WriteLine($"index: {spaceIndex}, areaAccum: {areaAccumulated}");
                 if (Math.Abs(areaAccumulated - space.designArea) <= threshold)
                 {
-
+                    if (_GlobalIndex >= semiSlivers.Count - 1)
+                        break;
                     if (indecesforPurgin.Contains(stSubs[_GlobalIndex]._stIndex))
                     {
                         bool placedExtras = false;
 
                         while (placedExtras == false)
                         {
+
+                            if (_GlobalIndex >= semiSlivers.Count - 1)
+                                break;
                             if (indecesforPurgin.Contains(stSubs[_GlobalIndex]._stIndex) == false)
                             {
                                 placedExtras = true;
@@ -779,17 +810,17 @@ namespace MJProceduralApartmentPlacer
                             var branchPolygons = branchSpaces.Select(s => s._poly).ToList();
                             var rawUnion = Polygon.UnionAll(branchPolygons)[0];
 
-                            
+
 
                             if (rawUnion != null)
                             {
 
-                                if(Math.Abs(rawUnion.Area())/_PlaceableSpaces[i].designArea>= 0.25)
+                                if (Math.Abs(rawUnion.Area()) / _PlaceableSpaces[i].designArea >= 0.25)
                                 {
-                                var space = new SmSpace(_PlaceableSpaces[i].type, _PlaceableSpaces[i].roomNumber, true, _PlaceableSpaces[i].designArea, rawUnion);
-                                space.roomLevel = firstLevel;
-                                space.sorter = i;
-                                _ProcessedProgram.Add(i, space);
+                                    var space = new SmSpace(_PlaceableSpaces[i].type, _PlaceableSpaces[i].roomNumber, true, _PlaceableSpaces[i].designArea, rawUnion);
+                                    space.roomLevel = firstLevel;
+                                    space.sorter = i;
+                                    _ProcessedProgram.Add(i, space);
                                 }
                             }
                         }

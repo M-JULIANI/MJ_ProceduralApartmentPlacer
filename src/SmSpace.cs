@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace MJProceduralApartmentPlacer
 {
-    public class SmSpace
+    public class SmSpace: IComparable
     {
         public int type { get; set; } //0, 1, 2
         public double area { get; set; }
@@ -82,5 +82,39 @@ namespace MJProceduralApartmentPlacer
 
             return outSpaces;
         }
+
+        public int CompareTo(object obj)
+        {
+            if(obj==null) return 1;
+
+            SmSpace otherSpace= obj as SmSpace;
+            if (otherSpace != null)
+            return this.type.CompareTo(otherSpace.type);
+                else
+            throw new ArgumentException("Object is not a SmSpace");
+        }
+
+        public class SpaceTypeComparer : IEqualityComparer<SmSpace>
+        {
+            public bool Equals(SmSpace b1, SmSpace b2)
+            {
+                if (b2 == null && b1 == null)
+                    return true;
+                else if (b1 == null || b2 == null)
+                    return false;
+                else if (b1.type == b2.type)
+                    return true;
+                else
+                    return false;
+            }
+
+            public int GetHashCode(SmSpace bx)
+            {
+                int hCode = bx.type;
+                return hCode.GetHashCode();
+            }
+        }
     }
+
+
 }
