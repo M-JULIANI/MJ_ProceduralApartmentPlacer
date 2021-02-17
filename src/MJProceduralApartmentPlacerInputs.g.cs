@@ -53,7 +53,7 @@ namespace MJProceduralApartmentPlacer
         /// <summary>Parameter that can be adjusted for apartment stack placement (2d).</summary>
         [Newtonsoft.Json.JsonProperty("Seam", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Range(0D, 1D)]
-        public double Seam { get; set; } = 0.54D;
+        public double Seam { get; set; } = 0.33D;
     
         /// <summary>Core polygons around which apartments should be placed.</summary>
         [Newtonsoft.Json.JsonProperty("CorePolygons", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]

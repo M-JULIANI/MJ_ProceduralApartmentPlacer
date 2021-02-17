@@ -248,7 +248,7 @@ namespace MJProceduralApartmentPlacer
                     {
                         var designArea = firstLvlUnits[i].designArea;
 
-
+                        //if it is roughly the same size as the planned unit:
                         if (Math.Abs(crvOut.Area() / designArea) >= 0.75)
                         {
                             var unitN = new SmSpace(firstLvlUnits[i].type, s, true, firstLvlUnits[i].designArea, crvOut);
@@ -256,18 +256,18 @@ namespace MJProceduralApartmentPlacer
                             PlacedSpaces.Add(unitN);
                             worked = true;
                         }
-                        else //try finding a closest best unit fit
-                        {
-                            var closestDistinctUnit = FindClosestUnitType(crvOut, distinctSpaces);
+                        // else //try finding a closest best unit fit
+                        // {
+                        //     var closestDistinctUnit = FindClosestUnitType(crvOut, distinctSpaces);
 
-                            if (Math.Abs(crvOut.Area() / closestDistinctUnit.designArea) >= 0.75)
-                            {
-                                var unitN = new SmSpace(closestDistinctUnit.type, s, true, closestDistinctUnit.designArea, crvOut);
-                                unitN.roomLevel = level;
-                                PlacedSpaces.Add(unitN);
-                                worked = true;
-                            }
-                        }
+                        //     if (Math.Abs(crvOut.Area() / closestDistinctUnit.designArea) >= 0.75)
+                        //     {
+                        //         var unitN = new SmSpace(closestDistinctUnit.type, s, true, closestDistinctUnit.designArea, crvOut);
+                        //         unitN.roomLevel = level;
+                        //         PlacedSpaces.Add(unitN);
+                        //         worked = true;
+                        //     }
+                        // }
 
                     }
                 }
