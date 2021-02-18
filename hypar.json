@@ -2,7 +2,7 @@
   "$schema": "https://hypar.io/Schemas/Function.json",
   "id": "6bcf9d36-19d4-4713-8745-5d8a42ef8d61",
   "name": "MJ_ProceduralApartmentPlacer",
-  "description": "Places an apartment mix in a procedurally generated mass.",
+  "description": "Places an apartment mix in a procedurally generated mass. Depends on the functions demonstrated in this workflow: https://hypar.io/workflows/0c29a4f5-4e8e-4f55-8101-14eafb8a2c8e.",
   "language": "C#",
   "model_dependencies": [
     {
@@ -62,7 +62,7 @@
           ]
         },
         "type": "object",
-        "$hyparOrder": 5,
+        "$hyparOrder": 2,
         "$hyparStyle": "matrix",
         "properties": {
           "Nodes": {
@@ -138,7 +138,7 @@
         "maximum": 1,
         "description": "Parameter that can be adjusted for apartment stack placement (2d).",
         "type": "number",
-        "$hyparOrder": 4,
+        "$hyparOrder": 1,
         "minimum": 0
       },
       "CorePolygons": {
@@ -146,7 +146,7 @@
         "default": [],
         "optional": true,
         "type": "array",
-        "$hyparOrder": 2,
+        "$hyparOrder": 0,
         "items": {
           "name": "CorePolygons",
           "description": "A list of cores the apartments should be placed around.",
@@ -174,10 +174,10 @@
   "element_types": [
     "https://prod-api.hypar.io/schemas/Envelope",
     "https://raw.githubusercontent.com/hypar-io/Schemas/master/Room.json",
-    "https://prod-api.hypar.io/schemas/ProgramType", 
+    "https://prod-api.hypar.io/schemas/ProgramType",
     "https://prod-api.hypar.io/schemas/ProceduralMassData"
   ],
-  "repository_url": "",
+  "repository_url": "https://github.com/M-JULIANI/MJ_ProceduralApartmentPlacer",
   "source_file_key": null,
   "preview_image": null
 }
