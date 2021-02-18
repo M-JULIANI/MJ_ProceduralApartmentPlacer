@@ -2,7 +2,7 @@
 
 # MJ_ProceduralApartmentPlacer
 
-Places an apartment mix in a procedurally generated mass.
+Places an apartment mix in a procedurally generated mass. Depends on the functions demonstrated in this workflow: https://hypar.io/workflows/0c29a4f5-4e8e-4f55-8101-14eafb8a2c8e.
 
 |Input Name|Type|Description|
 |---|---|---|
